@@ -555,7 +555,8 @@ function loadState() {
     const l = localStorage.getItem('kodus_libraries');
     S.libraries = l ? JSON.parse(l) : JSON.parse(JSON.stringify(LIBRARIES));
   } catch(e) { S.libraries = JSON.parse(JSON.stringify(LIBRARIES)); }
-  if (!S.libraries.warmup) S.libraries.warmup = [...LIBRARIES.warmup];
+  // Always sync warmup library from code (clears any stale localStorage data)
+  S.libraries.warmup = [...LIBRARIES.warmup];
   saveLibraries();
 }
 function saveWorkouts()  { localStorage.setItem('kodus_workouts', JSON.stringify(S.savedWorkouts)); }
