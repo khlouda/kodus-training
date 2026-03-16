@@ -751,22 +751,44 @@ function renderClient() {
   const desktop = isDesktop();
 
   if (desktop) {
-    app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column">
-      ${clientHeaderHtml(true)}
-      <div style="display:flex;flex:1;min-height:0;width:100%">
+    app.innerHTML = `<div style="min-height:100vh;background:var(--bg);position:relative">
+      <!-- Background glow -->
+      <div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden">
+        <div style="position:absolute;top:-180px;left:-180px;width:560px;height:560px;background:radial-gradient(circle,rgba(99,77,179,0.13) 0%,transparent 70%)"></div>
+        <div style="position:absolute;bottom:-160px;right:-120px;width:480px;height:480px;background:radial-gradient(circle,rgba(82,65,160,0.09) 0%,transparent 70%)"></div>
+      </div>
 
-        <!-- Left sidebar -->
-        <div class="no-print" style="width:360px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
-          ${renderWeekStrip()}
-          ${timerHtml()}
-          ${historyHtml(true)}
+      <!-- Full-width sticky header -->
+      <div style="position:sticky;top:0;z-index:50;background:rgba(15,14,23,0.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)">
+        <div style="max-width:1260px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="t-display" style="font-size:21px;font-weight:700;color:white;letter-spacing:-0.025em">Kodus Training</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button onclick="window.print()" class="btn-ghost no-print" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">Print</button>
+            <button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🏋️ Coach Portal</button>
+          </div>
         </div>
+      </div>
 
-        <!-- Main content -->
-        <div style="flex:1;min-width:0;padding:36px 48px;overflow-y:auto">
-          ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
+      <!-- Centered panel -->
+      <div style="max-width:1260px;margin:0 auto;padding:28px 28px 60px;position:relative;z-index:1">
+        <div style="border:1px solid var(--border-strong);border-radius:20px;background:rgba(23,22,40,0.85);box-shadow:0 8px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(99,77,179,0.06);display:flex;min-height:75vh">
+
+          <!-- Left sidebar -->
+          <div class="no-print" style="width:320px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 22px;position:sticky;top:90px;align-self:flex-start;display:flex;flex-direction:column;gap:14px;border-radius:20px 0 0 20px">
+            ${renderWeekStrip()}
+            ${timerHtml()}
+            ${historyHtml(true)}
+          </div>
+
+          <!-- Main content -->
+          <div style="flex:1;min-width:0;padding:32px 40px">
+            ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
+          </div>
+
         </div>
-
       </div>
     </div>`;
   } else {
@@ -997,29 +1019,43 @@ function renderCoach() {
   const desktop = isDesktop();
 
   if (desktop) {
-    app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column">
-      <!-- Desktop header -->
-      <div style="background:rgba(15,14,23,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
-        <div>
-          <div class="t-display" style="font-size:22px;font-weight:700;color:white">Coach Portal</div>
-          <div style="font-size:12px;color:var(--text-dim)">Mostafa Kodus · ${fmtDate(new Date())}</div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
-          <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
-          <button onclick="S.view='client';render()" class="btn-ghost" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;margin-left:8px">← Client View</button>
+    app.innerHTML = `<div style="min-height:100vh;background:var(--bg);position:relative">
+      <!-- Background glow -->
+      <div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden">
+        <div style="position:absolute;top:-180px;right:-180px;width:560px;height:560px;background:radial-gradient(circle,rgba(99,77,179,0.13) 0%,transparent 70%)"></div>
+        <div style="position:absolute;bottom:-160px;left:-120px;width:480px;height:480px;background:radial-gradient(circle,rgba(82,65,160,0.09) 0%,transparent 70%)"></div>
+      </div>
+
+      <!-- Full-width sticky header -->
+      <div style="position:sticky;top:0;z-index:50;background:rgba(15,14,23,0.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)">
+        <div style="max-width:1260px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div class="t-display" style="font-size:21px;font-weight:700;color:white;letter-spacing:-0.025em">Coach Portal</div>
+            <div style="font-size:11px;color:var(--text-dim);margin-top:1px">Mostafa Kodus · ${fmtDate(new Date())}</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
+            <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
+            <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+            <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">← Client View</button>
+          </div>
         </div>
       </div>
 
-      <div style="display:flex;flex:1;min-height:0;width:100%">
-        <!-- Left sidebar -->
-        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:66px;height:calc(100vh - 66px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
-          ${S.coachTab==='builder' ? builderSidebarHtml() : ''}
-        </div>
+      <!-- Centered panel -->
+      <div style="max-width:1260px;margin:0 auto;padding:28px 28px 60px;position:relative;z-index:1">
+        <div style="border:1px solid var(--border-strong);border-radius:20px;background:rgba(23,22,40,0.85);box-shadow:0 8px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(99,77,179,0.06);display:flex;min-height:75vh">
 
-        <!-- Main content -->
-        <div style="flex:1;min-width:0;padding:36px 48px;overflow-y:auto" id="coach-body">
-          ${S.coachTab==='builder' ? builderMainHtml() : renderLibrary()}
+          <!-- Left sidebar -->
+          <div style="width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 22px;position:sticky;top:90px;align-self:flex-start;display:flex;flex-direction:column;gap:14px;border-radius:20px 0 0 0">
+            ${S.coachTab==='builder' ? builderSidebarHtml() : ''}
+          </div>
+
+          <!-- Main content -->
+          <div style="flex:1;min-width:0;padding:32px 40px" id="coach-body">
+            ${S.coachTab==='builder' ? builderMainHtml() : renderLibrary()}
+          </div>
+
         </div>
       </div>
     </div>`;
