@@ -676,6 +676,15 @@ function renderWeekStrip() {
 // ROUTER
 // ============================================================
 const app = document.getElementById('app');
+
+function isDesktop() { return window.innerWidth >= 1024; }
+
+let _wasDesktop = isDesktop();
+window.addEventListener('resize', () => {
+  const now = isDesktop();
+  if (now !== _wasDesktop) { _wasDesktop = now; render(); }
+});
+
 function render() {
   if (S.view === 'coach') { renderCoach(); return; }
   renderClient();
@@ -684,58 +693,94 @@ function render() {
 // ============================================================
 // CLIENT VIEW
 // ============================================================
-function renderClient() {
-  const workout = getTodayWorkout();
-  app.innerHTML = `
-  <div style="min-height:100vh">
-    <!-- Header -->
-    <div class="no-print" style="background:rgba(15,14,23,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+function timerHtml() {
+  const C = 2*Math.PI*50;
+  return `<div class="card no-print" id="rest-timer-card" style="text-align:center">
+    <div class="t-label" style="margin-bottom:14px">Rest Timer</div>
+    <div style="position:relative;display:inline-block;width:120px;height:120px;margin-bottom:14px">
+      <svg width="120" height="120" style="transform:rotate(-90deg)">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="7"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#634DB3" stroke-width="7" stroke-linecap="round"
+          stroke-dasharray="${C}" stroke-dashoffset="${C}" id="timer-ring"/>
+      </svg>
+      <div id="timer-num" class="timer-num" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">0:00</div>
+    </div>
+    <div style="display:flex;gap:7px;justify-content:center;margin-bottom:12px">
+      <button onclick="setTimer(60)"  class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">60s</button>
+      <button onclick="setTimer(90)"  class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">90s</button>
+      <button onclick="setTimer(120)" class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">2min</button>
+    </div>
+    <button onclick="toggleTimer()" id="timer-btn" class="btn-primary" style="padding:10px 26px;border-radius:12px;font-size:14px;font-weight:700">Start</button>
+    <button onclick="resetTimer()" class="btn-ghost" style="padding:10px 14px;border-radius:12px;font-size:13px;margin-left:8px">Reset</button>
+  </div>`;
+}
+
+function historyHtml(alwaysOpen) {
+  const open = alwaysOpen || S.historyOpen;
+  return `<div class="card no-print" id="history-card">
+    ${alwaysOpen ? `<div class="t-label" style="margin-bottom:12px">Workout History</div>` : `
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="S.historyOpen=!S.historyOpen;rerenderHistory()">
+      <div class="t-label">Workout History</div>
+      <span style="font-size:14px;color:var(--text-faint)">${open?'▲':'▼'}</span>
+    </div>`}
+    <div id="history-inner">${open ? renderHistoryCalendar() : ''}</div>
+  </div>`;
+}
+
+function clientHeaderHtml(desktop) {
+  return `<div class="no-print" style="background:rgba(15,14,23,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:${desktop?'16px 40px':'14px 18px'};display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+    <div style="display:flex;align-items:center;gap:${desktop?'20px':'0'}">
       <div>
-        <div class="t-display" style="font-size:19px;font-weight:700;color:white;letter-spacing:-0.02em">Kodus Training</div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button onclick="window.print()" class="btn-ghost no-print" style="padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600">Print</button>
-        <button onclick="S.view='coach';S.workout=null;render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Coach Portal">🏋️</button>
+        <div class="t-display" style="font-size:${desktop?'22px':'19px'};font-weight:700;color:white;letter-spacing:-0.025em">Kodus Training</div>
+        <div style="font-size:${desktop?'12px':'11px'};color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
       </div>
     </div>
-    <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px">
-
-      ${renderWeekStrip()}
-
-      ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
-
-      <!-- Rest Timer -->
-      <div class="card no-print" style="margin-top:16px;text-align:center" id="rest-timer-card">
-        <div class="t-label" style="margin-bottom:14px">Rest Timer</div>
-        <div style="position:relative;display:inline-block;width:120px;height:120px;margin-bottom:14px">
-          <svg width="120" height="120" style="transform:rotate(-90deg)">
-            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="7"/>
-            <circle cx="60" cy="60" r="50" fill="none" stroke="#634DB3" stroke-width="7" stroke-linecap="round"
-              stroke-dasharray="${2*Math.PI*50}" stroke-dashoffset="${2*Math.PI*50}" id="timer-ring"/>
-          </svg>
-          <div id="timer-num" class="timer-num" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">0:00</div>
-        </div>
-        <div style="display:flex;gap:7px;justify-content:center;margin-bottom:12px">
-          <button onclick="setTimer(60)"  class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">60s</button>
-          <button onclick="setTimer(90)"  class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">90s</button>
-          <button onclick="setTimer(120)" class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">2min</button>
-        </div>
-        <button onclick="toggleTimer()" id="timer-btn" class="btn-primary" style="padding:10px 26px;border-radius:12px;font-size:14px;font-weight:700">Start</button>
-        <button onclick="resetTimer()" class="btn-ghost" style="padding:10px 14px;border-radius:12px;font-size:13px;margin-left:8px">Reset</button>
-      </div>
-
-      <!-- History -->
-      <div class="card no-print" style="margin-top:14px" id="history-card">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="S.historyOpen=!S.historyOpen;rerenderHistory()">
-          <div class="t-label">Workout History</div>
-          <span style="font-size:14px;color:var(--text-faint)">${S.historyOpen?'▲':'▼'}</span>
-        </div>
-        <div id="history-inner">${S.historyOpen ? renderHistoryCalendar() : ''}</div>
-      </div>
-
+    <div style="display:flex;gap:${desktop?'10px':'8px'};align-items:center">
+      <button onclick="window.print()" class="btn-ghost no-print" style="padding:${desktop?'9px 18px':'8px 12px'};border-radius:10px;font-size:${desktop?'13px':'12px'};font-weight:600">Print</button>
+      ${desktop
+        ? `<button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🏋️ Coach Portal</button>`
+        : `<button onclick="S.view='coach';S.workout=null;render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Coach Portal">🏋️</button>`
+      }
     </div>
   </div>`;
+}
+
+function renderClient() {
+  const workout = getTodayWorkout();
+  const desktop = isDesktop();
+
+  if (desktop) {
+    app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column">
+      ${clientHeaderHtml(true)}
+      <div style="display:grid;grid-template-columns:360px 1fr;flex:1;min-height:0">
+
+        <!-- Left sidebar -->
+        <div class="no-print" style="border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
+          ${renderWeekStrip()}
+          ${timerHtml()}
+          ${historyHtml(true)}
+        </div>
+
+        <!-- Main content -->
+        <div style="padding:36px 48px;overflow-y:auto">
+          <div style="max-width:680px">
+            ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+  } else {
+    app.innerHTML = `<div style="min-height:100vh">
+      ${clientHeaderHtml(false)}
+      <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px">
+        ${renderWeekStrip()}
+        ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
+        <div style="margin-top:16px">${timerHtml()}</div>
+        <div style="margin-top:14px">${historyHtml(false)}</div>
+      </div>
+    </div>`;
+  }
   tickTimer();
 }
 
@@ -941,118 +986,153 @@ function renderHistoryCalendar() {
 // COACH VIEW
 // ============================================================
 function renderCoach() {
-  // Auto-load today's type + template if no workout in progress
   if (!S.workout) {
     const existing = getTodayWorkout();
     if (existing) {
       S.workout = JSON.parse(JSON.stringify(existing));
     } else {
-      const todayType = getTodayScheduledType();
-      S.workout = buildDefaultTemplate(todayType);
+      S.workout = buildDefaultTemplate(getTodayScheduledType());
     }
   }
 
-  app.innerHTML = `
-  <div style="min-height:100vh">
-    <div style="background:rgba(15,14,23,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
-      <div>
-        <div class="t-display" style="font-size:19px;font-weight:700;color:white">Coach Portal</div>
-        <div style="font-size:11px;color:var(--text-dim)">Mostafa Kodus</div>
+  const desktop = isDesktop();
+
+  if (desktop) {
+    app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column">
+      <!-- Desktop header -->
+      <div style="background:rgba(15,14,23,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:16px 40px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+        <div>
+          <div class="t-display" style="font-size:22px;font-weight:700;color:white">Coach Portal</div>
+          <div style="font-size:12px;color:var(--text-dim)">Mostafa Kodus · ${fmtDate(new Date())}</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
+          <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
+          <button onclick="S.view='client';render()" class="btn-ghost" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:600;margin-left:8px">← Client View</button>
+        </div>
       </div>
-      <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600">← Client View</button>
-    </div>
-    <div style="padding:10px 14px 12px;display:flex;gap:7px;border-bottom:1px solid rgba(255,255,255,0.05)">
-      <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
-      <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
-    </div>
-    <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px" id="coach-body">
-      ${S.coachTab==='builder' ? renderBuilder() : renderLibrary()}
-    </div>
-  </div>`;
+
+      <div style="display:grid;grid-template-columns:320px 1fr;flex:1;min-height:0">
+        <!-- Left sidebar -->
+        <div style="border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:66px;height:calc(100vh - 66px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
+          ${S.coachTab==='builder' ? builderSidebarHtml() : ''}
+        </div>
+
+        <!-- Main content -->
+        <div style="padding:36px 48px;overflow-y:auto" id="coach-body">
+          <div style="max-width:720px">
+            ${S.coachTab==='builder' ? builderMainHtml() : renderLibrary()}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  } else {
+    app.innerHTML = `<div style="min-height:100vh">
+      <div style="background:rgba(15,14,23,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+        <div>
+          <div class="t-display" style="font-size:19px;font-weight:700;color:white">Coach Portal</div>
+          <div style="font-size:11px;color:var(--text-dim)">Mostafa Kodus</div>
+        </div>
+        <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600">← Client View</button>
+      </div>
+      <div style="padding:10px 14px 12px;display:flex;gap:7px;border-bottom:1px solid rgba(255,255,255,0.05)">
+        <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
+        <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
+      </div>
+      <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px" id="coach-body">
+        ${S.coachTab==='builder' ? renderBuilder() : renderLibrary()}
+      </div>
+    </div>`;
+  }
 }
 
 // ============================================================
-// BUILDER
+// BUILDER — helpers
 // ============================================================
-function renderBuilder() {
+function _builderMeta() {
   const w = S.workout;
   const todayType = getTodayScheduledType();
   const ti = WORKOUT_TYPES.find(t=>t.id===(w.type||todayType))||{label:'Select',icon:'💪'};
-  let h = '';
+  const lastSession = getLastSession(w.type);
+  return { w, ti, lastSession };
+}
 
-  // Today's scheduled type banner
-  h += renderWeekStrip();
-  h += `<div class="today-banner" style="margin-bottom:14px">
-    <div style="display:flex;align-items:center;gap:14px">
-      <div style="font-size:30px">${ti.icon}</div>
+function builderSidebarHtml() {
+  const { w, ti, lastSession } = _builderMeta();
+  let h = '';
+  h += `<div class="today-banner">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="font-size:28px">${ti.icon}</div>
       <div>
-        <div class="t-label" style="margin-bottom:2px">Today's Workout</div>
-        <div style="font-size:18px;font-weight:800;color:white">${ti.label}</div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
+        <div class="t-label" style="margin-bottom:2px">Today</div>
+        <div style="font-size:17px;font-weight:800;color:white">${ti.label}</div>
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end">
-      <button onclick="S.showTypeChooser=!S.showTypeChooser;render()" class="btn-ghost" style="padding:7px 12px;border-radius:10px;font-size:12px;font-weight:700">Change</button>
-      ${isWorkoutDone(todayKey())
-        ? `<div style="font-size:11px;font-weight:700;color:#4ade80;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);padding:5px 10px;border-radius:8px">✓ Marked done</div>`
-        : `<button onclick="coachMarkDone()" style="font-size:11px;font-weight:700;color:#4ade80;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);padding:5px 10px;border-radius:8px;cursor:pointer">Mark done</button>`
-      }
-    </div>
+    <button onclick="S.showTypeChooser=!S.showTypeChooser;render()" class="btn-ghost" style="padding:6px 12px;border-radius:9px;font-size:12px;font-weight:700">Change</button>
   </div>`;
 
-  // Type chooser (collapsible)
   if (S.showTypeChooser) {
-    h += `<div class="card" style="margin-bottom:14px">
-      <div style="font-size:13px;font-weight:700;color:white;margin-bottom:12px">Switch Workout Type</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-        ${WORKOUT_TYPES.map(t=>`
-        <button class="type-btn ${w.type===t.id?'active':''}" onclick="setWorkoutType('${t.id}')">
-          <div style="font-size:22px;margin-bottom:4px">${t.icon}</div>
-          <div style="font-size:12px;font-weight:700">${t.label}</div>
+    h += `<div class="card" style="border-color:rgba(99,77,179,0.3)">
+      <div style="font-size:12px;font-weight:700;color:white;margin-bottom:10px">Switch Type</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        ${WORKOUT_TYPES.map(t=>`<button class="type-btn ${w.type===t.id?'active':''}" onclick="setWorkoutType('${t.id}')" style="padding:12px 6px">
+          <div style="font-size:18px;margin-bottom:3px">${t.icon}</div>
+          <div style="font-size:11px;font-weight:700">${t.label}</div>
         </button>`).join('')}
       </div>
     </div>`;
   }
 
-  if (!w.type) return h;
+  h += renderWeekStrip();
+
+  if (lastSession) {
+    h += `<div class="card" style="border-color:rgba(99,77,179,0.25)">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:4px" onclick="S.lastSessionOpen=!S.lastSessionOpen;rerenderLastSession()">
+        <div style="font-size:13px;font-weight:700;color:white">📋 Last Session</div>
+        <span id="last-arrow" style="font-size:12px;color:var(--text-faint)">${S.lastSessionOpen?'▲':'▼'}</span>
+      </div>
+      <div style="font-size:11px;color:var(--text-faint);margin-bottom:6px">${lastSession.date}</div>
+      <div id="last-session-inner">${S.lastSessionOpen ? renderLastSessionContent(lastSession.workout) : ''}</div>
+      <button onclick="copyLastWorkout()" class="btn-ghost" style="width:100%;margin-top:8px;padding:9px;border-radius:10px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;border-color:rgba(99,77,179,0.3)">
+        🔄 Copy Last Workout
+      </button>
+    </div>`;
+  }
+
+  // Mark done + save
+  h += `<div style="display:flex;flex-direction:column;gap:8px">
+    ${isWorkoutDone(todayKey())
+      ? `<div style="text-align:center;padding:10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);border-radius:10px;font-size:13px;font-weight:700;color:#4ade80">✓ Workout marked done</div>`
+      : `<button onclick="coachMarkDone()" style="width:100%;padding:10px;border-radius:10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);font-size:13px;font-weight:700;color:#4ade80;cursor:pointer">Mark Done ✓</button>`
+    }
+    <button onclick="saveWorkout()" id="save-btn" class="btn-primary" style="width:100%;padding:14px;border-radius:13px;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px">
+      💾 Save Workout
+    </button>
+    ${S.savedWorkouts[todayKey()]?`<p style="text-align:center;color:var(--text-faint);font-size:11px">Last saved: ${todayKey()}</p>`:''}
+  </div>`;
+
+  return h;
+}
+
+function builderMainHtml() {
+  const { w, lastSession } = _builderMeta();
+  let h = '';
+
+  if (!w.type) {
+    return `<div class="card" style="text-align:center;padding:60px 20px;color:var(--text-dim)">Select a workout type in the sidebar to get started.</div>`;
+  }
 
   if (w.type === 'rest') {
-    h += `<div class="card" style="text-align:center;padding:32px;margin-bottom:14px">
+    return `<div class="card" style="text-align:center;padding:48px;margin-bottom:14px">
       <div style="font-size:44px;margin-bottom:12px">😴</div>
       <div style="font-size:18px;font-weight:700;color:white;margin-bottom:6px">Rest Day</div>
       <p style="color:var(--text-dim);font-size:14px;margin-bottom:16px">Recovery is part of the program.</p>
       <textarea class="input" rows="3" placeholder="Coach note (optional)…" oninput="w.coachNote=this.value" style="text-align:left">${esc(w.coachNote)}</textarea>
       <button onclick="saveWorkout()" class="btn-primary" style="margin-top:14px;width:100%;padding:15px;border-radius:14px;font-size:16px;font-weight:700">Save Rest Day</button>
     </div>`;
-    return h;
   }
 
-  // ── Last session panel ──
-  const lastSession = getLastSession(w.type);
-  if (lastSession) {
-    h += `<div class="card" style="margin-bottom:14px;border-color:rgba(99,77,179,0.25)">
-      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="S.lastSessionOpen=!S.lastSessionOpen;rerenderLastSession()">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:14px">📋</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;color:white">Notes from Last Session</div>
-            <div style="font-size:11px;color:var(--text-faint)">${lastSession.date}</div>
-          </div>
-        </div>
-        <span id="last-arrow" style="font-size:13px;color:var(--text-faint)">${S.lastSessionOpen?'▲':'▼'}</span>
-      </div>
-      <div id="last-session-inner">${S.lastSessionOpen ? renderLastSessionContent(lastSession.workout) : ''}</div>
-    </div>`;
-  }
-
-  // Copy last workout button
-  if (lastSession) {
-    h += `<button onclick="copyLastWorkout()" class="btn-ghost" style="width:100%;padding:13px;border-radius:13px;font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;border-color:rgba(99,77,179,0.3)">
-      <span style="font-size:15px">🔄</span> Copy Last Workout (${lastSession.date})
-    </button>`;
-  }
-
-  /* ── Warmup ── */
+  /* Warmup */
   h += `<div class="card" style="margin-bottom:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
       ${stepBadge(1)} <span style="font-size:15px;font-weight:700;color:white">🔥 Warm Up</span>
@@ -1076,7 +1156,7 @@ function renderBuilder() {
     </button>
   </div>`;
 
-  /* ── Sections ── */
+  /* Sections */
   h += `<div style="margin-bottom:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
       ${stepBadge(2)} <span style="font-size:15px;font-weight:700;color:white">Sections</span>
@@ -1090,7 +1170,7 @@ function renderBuilder() {
     </button>
   </div>`;
 
-  /* ── Finisher ── */
+  /* Finisher */
   h += `<div class="card" style="margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <div style="display:flex;align-items:center;gap:8px">${stepBadge(3)} <span style="font-size:15px;font-weight:700;color:white">⚡ Finisher</span></div>
@@ -1109,17 +1189,91 @@ function renderBuilder() {
     </div>` : ''}
   </div>`;
 
-  /* ── Coach Note ── */
+  /* Coach Note */
   h += `<div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">${stepBadge(4)} <span style="font-size:15px;font-weight:700;color:white">📝 Note to Khaled</span></div>
     <textarea class="input" rows="3" placeholder="e.g. Focus on form today, not weight." oninput="w.coachNote=this.value">${esc(w.coachNote)}</textarea>
   </div>`;
 
-  /* ── Save ── */
-  h += `<button onclick="saveWorkout()" id="save-btn" class="btn-primary" style="width:100%;padding:18px;border-radius:16px;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px">
-    <span>💾</span> Save Workout
-  </button>
-  ${S.savedWorkouts[todayKey()]?`<p style="text-align:center;color:var(--text-faint);font-size:12px;margin-top:8px">Last saved: ${todayKey()}</p>`:''}`;
+  return h;
+}
+
+// ============================================================
+// BUILDER — mobile (stacks sidebar meta + form)
+// ============================================================
+function renderBuilder() {
+  const { w, lastSession } = _builderMeta();
+  const todayType = getTodayScheduledType();
+  const ti = WORKOUT_TYPES.find(t=>t.id===(w.type||todayType))||{label:'Select',icon:'💪'};
+  let h = '';
+
+  h += renderWeekStrip();
+  h += `<div class="today-banner" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:30px">${ti.icon}</div>
+      <div>
+        <div class="t-label" style="margin-bottom:2px">Today's Workout</div>
+        <div style="font-size:18px;font-weight:800;color:white">${ti.label}</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px;align-items:flex-end">
+      <button onclick="S.showTypeChooser=!S.showTypeChooser;render()" class="btn-ghost" style="padding:7px 12px;border-radius:10px;font-size:12px;font-weight:700">Change</button>
+      ${isWorkoutDone(todayKey())
+        ? `<div style="font-size:11px;font-weight:700;color:#4ade80;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);padding:5px 10px;border-radius:8px">✓ Marked done</div>`
+        : `<button onclick="coachMarkDone()" style="font-size:11px;font-weight:700;color:#4ade80;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.25);padding:5px 10px;border-radius:8px;cursor:pointer">Mark done</button>`
+      }
+    </div>
+  </div>`;
+
+  if (S.showTypeChooser) {
+    h += `<div class="card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:white;margin-bottom:12px">Switch Workout Type</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${WORKOUT_TYPES.map(t=>`
+        <button class="type-btn ${w.type===t.id?'active':''}" onclick="setWorkoutType('${t.id}')">
+          <div style="font-size:22px;margin-bottom:4px">${t.icon}</div>
+          <div style="font-size:12px;font-weight:700">${t.label}</div>
+        </button>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  if (!w.type) return h;
+
+  // Mobile: last session panel + copy last
+  if (w.type !== 'rest') {
+    const lastSession = getLastSession(w.type);
+    if (lastSession) {
+      h += `<div class="card" style="margin-bottom:14px;border-color:rgba(99,77,179,0.25)">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="S.lastSessionOpen=!S.lastSessionOpen;rerenderLastSession()">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:14px">📋</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:white">Notes from Last Session</div>
+              <div style="font-size:11px;color:var(--text-faint)">${lastSession.date}</div>
+            </div>
+          </div>
+          <span id="last-arrow" style="font-size:13px;color:var(--text-faint)">${S.lastSessionOpen?'▲':'▼'}</span>
+        </div>
+        <div id="last-session-inner">${S.lastSessionOpen ? renderLastSessionContent(lastSession.workout) : ''}</div>
+      </div>
+      <button onclick="copyLastWorkout()" class="btn-ghost" style="width:100%;padding:13px;border-radius:13px;font-size:13px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:8px;border-color:rgba(99,77,179,0.3)">
+        <span style="font-size:15px">🔄</span> Copy Last Workout (${lastSession.date})
+      </button>`;
+    }
+  }
+
+  // Delegate to shared form builder
+  h += builderMainHtml();
+
+  // Mobile save button (desktop has it in sidebar)
+  if (w.type !== 'rest') {
+    h += `<button onclick="saveWorkout()" id="save-btn" class="btn-primary" style="width:100%;padding:18px;border-radius:16px;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px">
+      <span>💾</span> Save Workout
+    </button>
+    ${S.savedWorkouts[todayKey()]?`<p style="text-align:center;color:var(--text-faint);font-size:12px;margin-top:8px">Last saved: ${todayKey()}</p>`:''}`;
+  }
 
   return h;
 }
