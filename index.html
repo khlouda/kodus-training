@@ -539,6 +539,8 @@ let S = {
   workout: null,
   savedWorkouts: {},
   libraries: {},
+  videoLibrary: {},
+  videoEdit: null,
   timer: { sIdx: null, running: false, total: 0, remaining: 0, _iv: null },
   pickerCtx: null,
   showTypeChooser: false,
@@ -558,9 +560,11 @@ function loadState() {
   // Always sync warmup library from code (clears any stale localStorage data)
   S.libraries.warmup = [...LIBRARIES.warmup];
   saveLibraries();
+  try { S.videoLibrary = JSON.parse(localStorage.getItem('kodus_videos') || '{}'); } catch(e) { S.videoLibrary = {}; }
 }
-function saveWorkouts()  { localStorage.setItem('kodus_workouts', JSON.stringify(S.savedWorkouts)); }
-function saveLibraries() { localStorage.setItem('kodus_libraries', JSON.stringify(S.libraries)); }
+function saveWorkouts()    { localStorage.setItem('kodus_workouts',  JSON.stringify(S.savedWorkouts)); }
+function saveLibraries()  { localStorage.setItem('kodus_libraries', JSON.stringify(S.libraries)); }
+function saveVideoLibrary(){ localStorage.setItem('kodus_videos',    JSON.stringify(S.videoLibrary)); }
 
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function getTodayWorkout() { return S.savedWorkouts[todayKey()] || null; }
@@ -688,7 +692,9 @@ window.addEventListener('resize', () => {
 });
 
 function render() {
-  if (S.view === 'coach') { renderCoach(); } else { renderClient(); }
+  if (S.view === 'coach') { renderCoach(); }
+  else if (S.view === 'videos') { renderVideos(); }
+  else { renderClient(); }
 }
 
 // ============================================================
@@ -748,8 +754,10 @@ function clientHeaderHtml(desktop) {
     <div style="display:flex;gap:${desktop?'10px':'8px'};align-items:center">
       <button onclick="window.print()" class="btn-ghost no-print" style="padding:${desktop?'9px 18px':'8px 12px'};border-radius:10px;font-size:${desktop?'13px':'12px'};font-weight:600">Print</button>
       ${desktop
-        ? `<button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🏋️ Coach Portal</button>`
-        : `<button onclick="S.view='coach';S.workout=null;render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Coach Portal">🏋️</button>`
+        ? `<button onclick="S.view='videos';render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🎬 Videos</button>
+           <button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🏋️ Coach Portal</button>`
+        : `<button onclick="S.view='videos';render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Videos">🎬</button>
+           <button onclick="S.view='coach';S.workout=null;render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Coach Portal">🏋️</button>`
       }
     </div>
   </div>`;
@@ -907,9 +915,9 @@ function renderClientWorkout(w) {
               <span style="font-size:12px;color:var(--text-faint);white-space:nowrap">kg</span>
               ${showPR ? `<span class="pr-badge">🏆 PR</span>` : (prData ? `<span style="font-size:11px;color:var(--text-faint)">Best: ${prData.weight}kg</span>` : '')}
             </div>
-            ${ex.youtubeUrl?`<div style="margin-top:10px">
+            ${(S.videoLibrary[ex.name]||ex.youtubeUrl)?`<div style="margin-top:10px">
               <button onclick="toggleVid(this)" class="btn-ghost" style="padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;width:100%;display:flex;align-items:center;justify-content:center;gap:6px">▶ Watch Demo</button>
-              <div class="vid-wrap" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden"><iframe width="100%" height="195" src="${ytEmbed(ex.youtubeUrl)}" frameborder="0" allowfullscreen></iframe></div>
+              <div class="vid-wrap" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden"><iframe width="100%" height="195" src="${ytEmbed(S.videoLibrary[ex.name]||ex.youtubeUrl)}" frameborder="0" allowfullscreen></iframe></div>
             </div>`:''}
           </div>`;
         }).join('')}
@@ -1047,6 +1055,7 @@ function renderCoach() {
             <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
             <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
             <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+            <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">🎬 Videos</button>
             <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">← Client View</button>
           </div>
         </div>
@@ -1076,7 +1085,10 @@ function renderCoach() {
           <div class="t-display" style="font-size:19px;font-weight:700;color:white">Coach Portal</div>
           <div style="font-size:11px;color:var(--text-dim)">Mostafa Kodus</div>
         </div>
-        <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600">← Client View</button>
+        <div style="display:flex;gap:6px">
+          <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:7px 10px;border-radius:10px;font-size:12px;font-weight:600">🎬</button>
+          <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600">← Client</button>
+        </div>
       </div>
       <div style="padding:10px 14px 12px;display:flex;gap:7px;border-bottom:1px solid rgba(255,255,255,0.05)">
         <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
@@ -1426,7 +1438,7 @@ function renderSection(sec, idx) {
           <span style="font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:${accentColor}">${slotLabel}</span>
         </div>`:''}
         <button class="ex-pick-btn ${hasEx?'filled':''}" onclick="openPicker('exercise',${idx},${ei})">
-          ${hasEx ? `<span style="font-size:15px">🏋️</span><span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ex.name)}</span><span style="font-size:12px;color:#9988de;flex-shrink:0">Change ›</span>`
+          ${hasEx ? `<span style="font-size:15px">🏋️</span><span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ex.name)}</span>${S.videoLibrary[ex.name]?'<span style="font-size:13px;flex-shrink:0" title="Video linked">🎥</span>':''}<span style="font-size:12px;color:#9988de;flex-shrink:0">Change ›</span>`
                   : `<span style="font-size:18px;color:rgba(99,77,179,0.6)">+</span><span>Pick exercise…</span>`}
         </button>
         ${hasEx ? `
@@ -1789,6 +1801,89 @@ function tickSectionTimer() {
 function tickTimer() {} // kept for legacy call-sites, no-op
 
 // ============================================================
+// ============================================================
+// VIDEO BUILDER
+// ============================================================
+const VIDEO_CATS = [
+  { key:'shoulders',    label:'Shoulders' },
+  { key:'back_triceps', label:'Back & Triceps' },
+  { key:'chest_biceps', label:'Chest & Biceps' },
+  { key:'legs',         label:'Leg Day' },
+];
+
+function renderVideos() {
+  const desktop = isDesktop();
+  let h = `<div style="min-height:100vh;background:var(--bg)">
+    <div style="position:sticky;top:0;z-index:50;background:rgba(15,14,23,0.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)">
+      <div style="max-width:860px;margin:0 auto;padding:14px ${desktop?'28px':'18px'};display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div class="t-display" style="font-size:${desktop?'20px':'18px'};font-weight:700;color:white">🎬 Exercise Video Builder</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:1px">Link YouTube demos to exercises — visible to Khaled</div>
+        </div>
+        <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600">← Back</button>
+      </div>
+    </div>
+    <div style="max-width:860px;margin:0 auto;padding:24px ${desktop?'28px':'14px'} 80px">`;
+
+  VIDEO_CATS.forEach(cat => {
+    const exercises = S.libraries[cat.key] || [];
+    h += `<div style="margin-bottom:28px">
+      <div style="font-size:12px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#9988de;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">${cat.label}</div>
+      <div style="display:flex;flex-direction:column;gap:6px">`;
+    exercises.forEach(name => {
+      const url = S.videoLibrary[name];
+      const isEditing = S.videoEdit === name;
+      const safeJson = esc(JSON.stringify(name));
+      if (isEditing) {
+        h += `<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(99,77,179,0.1);border:1px solid rgba(99,77,179,0.35);border-radius:12px">
+          <span style="flex:1;min-width:0;font-size:13px;font-weight:600;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(name)}</span>
+          <input id="video-edit-input" type="url" value="${esc(url||'')}" placeholder="Paste YouTube URL…"
+            style="width:${desktop?'260px':'140px'};padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;flex-shrink:0"
+            onkeydown="if(event.key==='Enter')saveVideoUrl()">
+          <button onclick="saveVideoUrl()" style="padding:7px 14px;background:#634DB3;border:none;border-radius:9px;color:white;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">Save</button>
+          <button onclick="S.videoEdit=null;render()" class="btn-ghost" style="padding:7px 10px;border-radius:9px;font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
+        </div>`;
+      } else {
+        h += `<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px">
+          <span style="flex:1;min-width:0;font-size:13px;font-weight:500;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(name)}</span>
+          ${url
+            ? `<span onclick="startVideoEdit(${safeJson})" title="Click to change URL"
+                style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(99,77,179,0.2);border:1px solid rgba(99,77,179,0.4);border-radius:8px;color:#c4bde8;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0">🎥 Linked ✎</span>`
+            : `<button onclick="startVideoEdit(${safeJson})"
+                style="padding:5px 12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:8px;color:#9988de;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0">+ Add Video</button>`
+          }
+        </div>`;
+      }
+    });
+    h += `</div></div>`;
+  });
+
+  h += `</div></div>`;
+  app.innerHTML = h;
+  if (S.videoEdit) {
+    requestAnimationFrame(() => {
+      const inp = document.getElementById('video-edit-input');
+      if (inp) { inp.focus(); inp.select(); }
+    });
+  }
+}
+
+function startVideoEdit(name) {
+  S.videoEdit = name;
+  render();
+}
+
+function saveVideoUrl() {
+  const name = S.videoEdit;
+  if (!name) return;
+  const inp = document.getElementById('video-edit-input');
+  const url = inp ? inp.value.trim() : '';
+  if (url) { S.videoLibrary[name] = url; } else { delete S.videoLibrary[name]; }
+  saveVideoLibrary();
+  S.videoEdit = null;
+  render();
+}
+
 // CLIENT HELPERS
 // ============================================================
 function getCompletionState(date,idx){ try{return !!(JSON.parse(localStorage.getItem(`kodus_complete_${date}`)||'{}')[idx]);}catch(e){return false;}}
