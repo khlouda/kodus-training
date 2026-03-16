@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kodus Training</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          50:  '#f0edf9',
+          100: '#ddd7f4',
+          200: '#bbb0e9',
+          300: '#9988de',
+          400: '#7761d0',
+          500: '#634DB3',
+          600: '#5241a0',
+          700: '#41348d',
+          800: '#312779',
+          900: '#211a5e',
+        }
+      },
+      fontFamily: {
+        display: ['Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0f0e17;
+    color: #e8e6f0;
+    min-height: 100vh;
+  }
+
+  /* Noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .surface { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); }
+  .surface-elevated { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #7761d0 0%, #634DB3 50%, #5241a0 100%);
+    box-shadow: 0 4px 20px rgba(99,77,179,0.4), 0 1px 0 rgba(255,255,255,0.15) inset;
+    color: white;
+    border: none;
+    transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(99,77,179,0.55), 0 1px 0 rgba(255,255,255,0.15) inset; }
+  .btn-primary:active { transform: translateY(0px) scale(0.98); }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #c4bde8;
+    transition: background 0.15s ease, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+  .btn-ghost:active { transform: scale(0.97); }
+
+  .btn-type {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    color: #c4bde8;
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .btn-type:hover { border-color: #634DB3; background: rgba(99,77,179,0.15); }
+  .btn-type.active {
+    background: linear-gradient(135deg, rgba(119,97,208,0.3), rgba(99,77,179,0.3));
+    border-color: #7761d0;
+    color: white;
+    box-shadow: 0 0 0 3px rgba(99,77,179,0.25), 0 4px 16px rgba(99,77,179,0.3);
+  }
+
+  .section-type-btn {
+    transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+    border: 2px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+  }
+  .section-type-btn:hover { border-color: rgba(99,77,179,0.5); background: rgba(99,77,179,0.1); }
+  .section-type-btn.active {
+    border-color: #7761d0;
+    background: rgba(99,77,179,0.2);
+    box-shadow: 0 0 0 3px rgba(99,77,179,0.2);
+  }
+
+  .input-field {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #e8e6f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    width: 100%;
+    font-size: 15px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .input-field:focus { border-color: #7761d0; box-shadow: 0 0 0 3px rgba(99,77,179,0.2); }
+  .input-field::placeholder { color: rgba(255,255,255,0.3); }
+
+  select.input-field option { background: #1a1828; color: #e8e6f0; }
+
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .card-elevated {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .section-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .section-header {
+    background: rgba(99,77,179,0.15);
+    border-bottom: 1px solid rgba(99,77,179,0.2);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.45); margin-bottom: 6px; }
+
+  .exercise-slot {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px;
+    padding: 14px;
+  }
+  .slot-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #9988de;
+  }
+
+  /* Client view */
+  .client-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .client-card-header {
+    background: linear-gradient(135deg, rgba(99,77,179,0.4), rgba(82,65,160,0.3));
+    border-bottom: 1px solid rgba(99,77,179,0.25);
+    padding: 16px 20px;
+  }
+  .section-letter {
+    font-size: 28px;
+    font-weight: 700;
+    color: #9988de;
+    line-height: 1;
+    font-family: Georgia, serif;
+  }
+  .exercise-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+  }
+  .reps-badge {
+    background: rgba(99,77,179,0.25);
+    border: 1px solid rgba(99,77,179,0.4);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 700;
+    color: #c4bde8;
+    font-size: 16px;
+  }
+
+  /* Timer */
+  .timer-display {
+    font-size: 64px;
+    font-weight: 700;
+    font-family: Georgia, serif;
+    color: white;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .timer-ring {
+    stroke: #634DB3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+  }
+
+  /* Streak */
+  .streak-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+  .streak-done { background: #634DB3; color: white; box-shadow: 0 0 12px rgba(99,77,179,0.6); }
+  .streak-today { border: 2px solid #634DB3; color: #9988de; }
+  .streak-empty { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.25); }
+
+  /* Checkbox */
+  .complete-check { width: 24px; height: 24px; border-radius: 6px; border: 2px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; transition: all 0.2s; appearance: none; -webkit-appearance: none; flex-shrink: 0; }
+  .complete-check:checked { background: #634DB3; border-color: #634DB3; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='1,5 4,9 11,1' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; background-size: 12px; }
+
+  /* Dropdown search */
+  .search-dropdown { position: relative; }
+  .dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: #1a1828;
+    border: 1px solid rgba(99,77,179,0.4);
+    border-radius: 10px;
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .dropdown-item { padding: 10px 14px; cursor: pointer; font-size: 14px; color: #c4bde8; transition: background 0.1s; }
+  .dropdown-item:hover, .dropdown-item.highlighted { background: rgba(99,77,179,0.25); color: white; }
+
+  /* Nav tabs */
+  .nav-tab { padding: 10px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: rgba(255,255,255,0.5); }
+  .nav-tab.active { background: rgba(99,77,179,0.25); color: white; border: 1px solid rgba(99,77,179,0.4); }
+  .nav-tab:hover:not(.active) { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.05); }
+
+  /* Toggle */
+  .toggle { position: relative; width: 48px; height: 26px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.1); border-radius: 26px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.1); }
+  .toggle-slider:before { content: ''; position: absolute; height: 20px; width: 20px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.3s; }
+  input:checked + .toggle-slider { background: #634DB3; border-color: #634DB3; }
+  input:checked + .toggle-slider:before { transform: translateX(22px); }
+
+  /* Print */
+  @media print {
+    body { background: white !important; color: black !important; }
+    .no-print { display: none !important; }
+    .client-card { background: white !important; border: 1px solid #ddd !important; box-shadow: none !important; }
+    .client-card-header { background: #f5f3ff !important; }
+    .exercise-name { color: black !important; }
+    .reps-badge { background: #f5f3ff !important; color: #634DB3 !important; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(99,77,179,0.4); border-radius: 4px; }
+
+  .fade-in { animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .slide-down { animation: slideDown 0.25s ease; }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const LIBRARIES = {
+  shoulders: [
+    'Dumbbell shoulder press neutral grip','Dumbbell shoulder press','Ez bar supinated shoulder press',
+    'Barbell front raises supinated','Front raises barbell wide grip','Front raises DBs alternating',
+    'Barbell upright row','Seated dumbbell lateral raises','Cable lateral raises','Dumbbell rear delt fly',
+    'Face pulls cable','Dumbbell shrugs','Arnold press','Behind the neck press','Scapula push ups',
+    'Shoulder taps','Band pull aparts','Plank walk outs'
+  ],
+  back_triceps: [
+    'Pull ups','Barbell bent over row','Chest supported dumbbell row incline bench','Seated row cable',
+    'Single arm dumbbell row','High row cable','Straight arm cable pulldown','Lat pulldown','Back extension',
+    'Dumbbell skull crusher','Dumbbell skull crusher neutral grip','Tricep pushdown rope','Tricep pushdown cable',
+    'Overhead tricep extension cable','Diamond push ups','Close grip bench press'
+  ],
+  chest_biceps: [
+    'Incline smith bench press','Incline dumbbell press','Dumbbell chest press flat','Decline chest press machine',
+    'Incline chest fly','Butterfly machine fly','Standing cable crossover','Cable cross high to low',
+    'Cable cross low to high','Dumbbell chest pullover','Push ups','Dips','Dumbbell bicep curls','Barbell curl',
+    'Hammer curl DBs','Rope hammer curls','Single arm preacher curl','Incline dumbbell curl',
+    'Band pull aparts','Shoulder taps','Plank walk outs','Worlds greatest stretch'
+  ],
+  legs: [
+    'Hack squat','Back squat','Heels elevated goblet squat','Bulgarian split squat','Walking lunges',
+    'RDL single leg dumbbell','Romanian deadlift','Prone leg curl','Seated leg extension','Hip thrust machine',
+    'Leg press','Standing calf raise','Seated calf raise','Box jumps','Forward/back single leg swings',
+    'Cross body single leg swings','World\'s greatest stretch','Bird dog'
+  ],
+  warmup: [
+    'Row (time or calories)','Air Bike (time or calories)','Run (distance or time)','Scapula push ups',
+    'Shoulder taps','Band pull aparts','Plank walk outs','World\'s greatest stretch','Bird dog',
+    'Single leg swings forward/back','Single leg swings cross body'
+  ],
+  finisher: [
+    'Ski erg (calories)','Burpees','Run 200m','Row (calories)','Air Bike (calories)','Box jumps','Dips','Pull ups'
+  ]
+};
+
+const WORKOUT_TYPES = [
+  { id: 'shoulders', label: 'Shoulders', icon: '🏋️', lib: 'shoulders' },
+  { id: 'back_triceps', label: 'Back & Triceps', icon: '💪', lib: 'back_triceps' },
+  { id: 'chest_biceps', label: 'Chest & Biceps', icon: '🫁', lib: 'chest_biceps' },
+  { id: 'legs', label: 'Leg Day', icon: '🦵', lib: 'legs' },
+  { id: 'rest', label: 'Rest Day', icon: '😴', lib: null },
+];
+
+const SECTION_LETTERS = 'ABCDEFGHIJKLMNOP'.split('');
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  view: 'client', // 'client' | 'coach' | 'login'
+  coachTab: 'builder', // 'builder' | 'library'
+  workout: null, // current workout being built
+  savedWorkouts: {},
+  libraries: {},
+  timer: { running: false, total: 0, remaining: 0, intervalId: null },
+};
+
+function loadState() {
+  const saved = localStorage.getItem('kodus_workouts');
+  if (saved) state.savedWorkouts = JSON.parse(saved);
+  const libs = localStorage.getItem('kodus_libraries');
+  if (libs) state.libraries = JSON.parse(libs);
+  else {
+    state.libraries = JSON.parse(JSON.stringify(LIBRARIES));
+    saveLibraries();
+  }
+}
+
+function saveWorkouts() {
+  localStorage.setItem('kodus_workouts', JSON.stringify(state.savedWorkouts));
+}
+function saveLibraries() {
+  localStorage.setItem('kodus_libraries', JSON.stringify(state.libraries));
+}
+
+function todayKey() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function getTodayWorkout() {
+  return state.savedWorkouts[todayKey()] || null;
+}
+
+function getWeekDays() {
+  const days = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = d.toISOString().slice(0,10);
+    const dayLabels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    days.push({ key, label: dayLabels[d.getDay()], isToday: i === 0, hasWorkout: !!state.savedWorkouts[key] });
+  }
+  return days;
+}
+
+function emptyWorkout(type) {
+  return {
+    type,
+    warmupItems: [],
+    warmupNote: '',
+    sections: [],
+    finisherEnabled: false,
+    finisherRounds: '',
+    finisherExercises: '',
+    finisherItems: [],
+    coachNote: '',
+    date: todayKey(),
+  };
+}
+
+function emptySection(letter) {
+  return {
+    letter,
+    sectionType: null, // 'single' | 'superset' | 'triset'
+    exercises: [],
+    rest: '',
+    coachNote: '',
+  };
+}
+
+function emptyExercise() {
+  return { name: '', isCustom: false, customName: '', setsReps: '', youtubeUrl: '' };
+}
+
+// ============================================================
+// RENDER ENGINE
+// ============================================================
+const app = document.getElementById('app');
+
+function render() {
+  if (state.view === 'login') { renderLogin(); return; }
+  if (state.view === 'coach') { renderCoach(); return; }
+  renderClient();
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+function renderLogin() {
+  app.innerHTML = `
+  <div class="min-h-screen flex items-center justify-center p-6">
+    <div class="w-full max-w-sm fade-in">
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center mx-auto mb-4" style="box-shadow:0 8px 32px rgba(99,77,179,0.5)">
+          <span style="font-size:28px">🏋️</span>
+        </div>
+        <h1 class="text-2xl font-bold text-white" style="font-family:Georgia,serif;letter-spacing:-0.02em">Coach Portal</h1>
+        <p class="text-sm mt-1" style="color:rgba(255,255,255,0.4)">Enter password to continue</p>
+      </div>
+      <div class="card-elevated">
+        <div class="mb-4">
+          <div class="label">Password</div>
+          <input id="pw" type="password" class="input-field" placeholder="Enter password" autocomplete="off">
+        </div>
+        <div id="pw-error" class="text-red-400 text-sm mb-3 hidden">Incorrect password</div>
+        <button onclick="attemptLogin()" class="btn-primary w-full py-3 rounded-xl text-base font-semibold">Enter Coach View</button>
+        <button onclick="goClient()" class="btn-ghost w-full py-3 rounded-xl text-base font-medium mt-3">Back to My Workouts</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('pw').addEventListener('keydown', e => { if (e.key === 'Enter') attemptLogin(); });
+}
+
+function attemptLogin() {
+  if (document.getElementById('pw').value === 'mostafa') {
+    state.view = 'coach';
+    if (!state.workout) initNewWorkout();
+    render();
+  } else {
+    document.getElementById('pw-error').classList.remove('hidden');
+  }
+}
+function goClient() { state.view = 'client'; render(); }
+
+function initNewWorkout() {
+  const today = getTodayWorkout();
+  if (today) state.workout = JSON.parse(JSON.stringify(today));
+  else state.workout = null;
+}
+
+// ============================================================
+// CLIENT VIEW
+// ============================================================
+function renderClient() {
+  const workout = getTodayWorkout();
+  const days = getWeekDays();
+
+  app.innerHTML = `
+  <div class="min-h-screen" style="position:relative;z-index:1">
+    <!-- Header -->
+    <div class="no-print" style="background:rgba(15,14,23,0.95);border-bottom:1px solid rgba(255,255,255,0.07);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:white;letter-spacing:-0.02em">Kodus Training</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:1px">${formatDate(new Date())}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="window.print()" class="btn-ghost no-print" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:500">Print</button>
+        <button onclick="openLogin()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.2);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px">🔐</button>
+      </div>
+    </div>
+
+    <div style="max-width:480px;margin:0 auto;padding:20px 16px 100px">
+
+      <!-- Streak -->
+      <div class="card no-print" style="margin-bottom:16px">
+        <div class="label">Weekly Streak</div>
+        <div style="display:flex;gap:8px;justify-content:space-between;margin-top:8px">
+          ${days.map(d => `
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+              <div class="streak-dot ${d.hasWorkout ? 'streak-done' : d.isToday ? 'streak-today' : 'streak-empty'}">${d.hasWorkout ? '✓' : d.label.charAt(0)}</div>
+              <span style="font-size:10px;color:rgba(255,255,255,0.35)">${d.label}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      ${workout ? renderClientWorkout(workout) : `
+        <div class="card" style="text-align:center;padding:48px 20px">
+          <div style="font-size:48px;margin-bottom:16px">🌙</div>
+          <div style="font-size:20px;font-weight:700;color:white;margin-bottom:8px">No Workout Today</div>
+          <p style="color:rgba(255,255,255,0.4);font-size:14px;line-height:1.6">Mostafa hasn't posted today's session yet. Check back soon!</p>
+        </div>
+      `}
+
+      <!-- Rest Timer -->
+      ${renderRestTimer()}
+
+    </div>
+  </div>`;
+
+  updateTimerDisplay();
+}
+
+function renderClientWorkout(workout) {
+  const typeInfo = WORKOUT_TYPES.find(t => t.id === workout.type) || { label: workout.type, icon: '💪' };
+  let html = '';
+
+  // Workout type header
+  html += `
+  <div style="background:linear-gradient(135deg,rgba(99,77,179,0.3),rgba(82,65,160,0.2));border:1px solid rgba(99,77,179,0.3);border-radius:20px;padding:20px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+    <div style="font-size:36px">${typeInfo.icon}</div>
+    <div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:2px">Today's Session</div>
+      <div style="font-size:24px;font-weight:700;color:white;font-family:Georgia,serif;letter-spacing:-0.02em">${typeInfo.label}</div>
+    </div>
+  </div>`;
+
+  // Coach note
+  if (workout.coachNote) {
+    html += `
+    <div style="background:linear-gradient(135deg,rgba(99,77,179,0.2),rgba(82,65,160,0.15));border:1px solid rgba(99,77,179,0.35);border-radius:16px;padding:16px;margin-bottom:20px">
+      <div class="label" style="margin-bottom:6px">📝 Coach's Note</div>
+      <p style="color:#c4bde8;font-size:15px;line-height:1.6;font-style:italic">"${workout.coachNote}"</p>
+    </div>`;
+  }
+
+  // Warmup
+  if (workout.warmupItems?.length || workout.warmupNote) {
+    html += `
+    <div class="client-card" style="margin-bottom:16px">
+      <div class="client-card-header" style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:20px">🔥</div>
+        <div style="font-weight:700;font-size:17px;color:white">Warm Up</div>
+      </div>
+      <div style="padding:16px">
+        ${workout.warmupNote ? `<p style="color:#c4bde8;font-size:14px;line-height:1.6;font-style:italic;margin-bottom:${workout.warmupItems?.length ? '12px' : '0'}">${workout.warmupNote}</p>` : ''}
+        ${(workout.warmupItems||[]).map(w => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)">
+            <span style="font-size:15px;font-weight:500;color:white">${w.name}</span>
+            <span style="font-size:13px;color:#9988de;font-weight:600">${w.setsReps}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Sections
+  (workout.sections || []).forEach((sec, idx) => {
+    const checked = getCompletionState(workout.date, idx);
+    html += `
+    <div class="client-card" style="margin-bottom:16px;${checked ? 'opacity:0.6' : ''}">
+      <div class="client-card-header" style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="section-letter">${sec.type === 'single' ? sec.letter : sec.exercises.map((_,i) => sec.letter + (i+1)).join('·')}</span>
+          <div>
+            <div style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45)">${sec.sectionType === 'superset' ? 'Superset' : sec.sectionType === 'triset' ? 'Triset' : 'Exercise'}</div>
+            ${sec.rest ? `<div style="font-size:12px;color:#9988de;margin-top:1px">⏱ Rest: ${sec.rest}</div>` : ''}
+          </div>
+        </div>
+        <input type="checkbox" class="complete-check" ${checked ? 'checked' : ''} onchange="toggleComplete('${workout.date}',${idx},this.checked)">
+      </div>
+      <div style="padding:16px">
+        ${sec.exercises.map((ex, ei) => `
+          <div style="${ei > 0 ? 'border-top:1px solid rgba(255,255,255,0.07);padding-top:14px;margin-top:14px' : ''}">
+            ${sec.sectionType !== 'single' ? `<div class="slot-label" style="margin-bottom:4px">${sec.letter}${ei+1}</div>` : ''}
+            <div class="exercise-name" style="margin-bottom:8px">${ex.name || ex.customName || '—'}</div>
+            ${ex.setsReps ? `<div class="reps-badge" style="display:inline-block;margin-bottom:8px">${ex.setsReps}</div>` : ''}
+            ${ex.youtubeUrl ? `
+              <div style="margin-top:10px">
+                <button onclick="toggleVideo(this)" class="btn-ghost" style="padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;width:100%;display:flex;align-items:center;justify-content:center;gap:6px">
+                  <span>▶</span> Watch Demo
+                </button>
+                <div class="video-container" style="display:none;margin-top:8px;border-radius:12px;overflow:hidden">
+                  <iframe width="100%" height="200" src="${getYoutubeEmbedUrl(ex.youtubeUrl)}" frameborder="0" allowfullscreen></iframe>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+        `).join('')}
+        ${sec.coachNote ? `<div style="margin-top:12px;padding:10px 12px;background:rgba(99,77,179,0.1);border-radius:8px;border-left:3px solid #634DB3"><span style="font-size:13px;color:#c4bde8;font-style:italic">${sec.coachNote}</span></div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  // Finisher
+  if (workout.finisherEnabled && (workout.finisherExercises || workout.finisherItems?.length)) {
+    html += `
+    <div class="client-card" style="margin-bottom:16px">
+      <div class="client-card-header" style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:20px">⚡</div>
+        <div>
+          <div style="font-weight:700;font-size:17px;color:white">Finisher</div>
+          ${workout.finisherRounds ? `<div style="font-size:12px;color:#9988de">${workout.finisherRounds}</div>` : ''}
+        </div>
+      </div>
+      <div style="padding:16px">
+        ${workout.finisherExercises ? `<p style="color:#c4bde8;font-size:14px;line-height:1.6">${workout.finisherExercises}</p>` : ''}
+        ${(workout.finisherItems||[]).map(f => `<div style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:15px;color:white">${f.name}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  return html;
+}
+
+function renderRestTimer() {
+  const t = state.timer;
+  const pct = t.total > 0 ? (t.remaining / t.total) : 0;
+  const circumference = 2 * Math.PI * 52;
+  const offset = circumference * (1 - pct);
+  const mins = Math.floor(t.remaining / 60);
+  const secs = t.remaining % 60;
+  const display = t.remaining > 0 ? `${mins}:${secs.toString().padStart(2,'0')}` : '0:00';
+
+  return `
+  <div class="card no-print" id="rest-timer" style="margin-top:20px;text-align:center">
+    <div class="label" style="margin-bottom:16px">Rest Timer</div>
+    <div style="position:relative;display:inline-block;width:128px;height:128px;margin-bottom:16px">
+      <svg width="128" height="128" style="transform:rotate(-90deg)">
+        <circle cx="64" cy="64" r="52" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+        <circle id="timer-ring" cx="64" cy="64" r="52" fill="none" stroke="#634DB3" stroke-width="8"
+          stroke-linecap="round"
+          stroke-dasharray="${circumference}"
+          stroke-dashoffset="${offset}"/>
+      </svg>
+      <div id="timer-display" class="timer-display" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px">${display}</div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-bottom:12px">
+      <button onclick="setTimer(60)" class="btn-ghost" style="padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600">60s</button>
+      <button onclick="setTimer(90)" class="btn-ghost" style="padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600">90s</button>
+      <button onclick="setTimer(120)" class="btn-ghost" style="padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600">2min</button>
+    </div>
+    <button onclick="toggleTimer()" id="timer-btn" class="btn-primary" style="padding:10px 28px;border-radius:12px;font-size:15px;font-weight:600">
+      ${t.running ? 'Pause' : t.remaining > 0 ? 'Resume' : 'Start'}
+    </button>
+    ${t.remaining > 0 ? `<button onclick="resetTimer()" class="btn-ghost" style="padding:10px 16px;border-radius:12px;font-size:14px;margin-left:8px">Reset</button>` : ''}
+  </div>`;
+}
+
+function getYoutubeEmbedUrl(url) {
+  if (!url) return '';
+  let id = '';
+  const m1 = url.match(/[?&]v=([^&]+)/);
+  const m2 = url.match(/youtu\.be\/([^?]+)/);
+  const m3 = url.match(/embed\/([^?]+)/);
+  if (m1) id = m1[1];
+  else if (m2) id = m2[1];
+  else if (m3) id = m3[1];
+  return id ? `https://www.youtube.com/embed/${id}` : url;
+}
+
+function toggleVideo(btn) {
+  const container = btn.nextElementSibling;
+  const hidden = container.style.display === 'none';
+  container.style.display = hidden ? 'block' : 'none';
+  btn.innerHTML = hidden ? '<span>▼</span> Hide Demo' : '<span>▶</span> Watch Demo';
+}
+
+function getCompletionState(date, idx) {
+  const key = `kodus_complete_${date}`;
+  const data = JSON.parse(localStorage.getItem(key) || '{}');
+  return !!data[idx];
+}
+
+function toggleComplete(date, idx, val) {
+  const key = `kodus_complete_${date}`;
+  const data = JSON.parse(localStorage.getItem(key) || '{}');
+  data[idx] = val;
+  localStorage.setItem(key, JSON.stringify(data));
+  render();
+}
+
+// Timer
+function setTimer(secs) {
+  clearInterval(state.timer.intervalId);
+  state.timer = { running: false, total: secs, remaining: secs, intervalId: null };
+  updateTimerDisplay();
+}
+
+function toggleTimer() {
+  if (state.timer.remaining <= 0) return;
+  if (state.timer.running) {
+    clearInterval(state.timer.intervalId);
+    state.timer.running = false;
+    state.timer.intervalId = null;
+  } else {
+    state.timer.running = true;
+    state.timer.intervalId = setInterval(() => {
+      state.timer.remaining--;
+      if (state.timer.remaining <= 0) {
+        clearInterval(state.timer.intervalId);
+        state.timer.running = false;
+        state.timer.intervalId = null;
+        // Vibrate
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      }
+      updateTimerDisplay();
+    }, 1000);
+  }
+  updateTimerDisplay();
+}
+
+function resetTimer() {
+  clearInterval(state.timer.intervalId);
+  state.timer.remaining = state.timer.total;
+  state.timer.running = false;
+  state.timer.intervalId = null;
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const t = state.timer;
+  const disp = document.getElementById('timer-display');
+  const ring = document.getElementById('timer-ring');
+  const btn = document.getElementById('timer-btn');
+  if (!disp) return;
+
+  const mins = Math.floor(t.remaining / 60);
+  const secs = t.remaining % 60;
+  disp.textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+
+  if (ring) {
+    const circumference = 2 * Math.PI * 52;
+    const pct = t.total > 0 ? t.remaining / t.total : 0;
+    ring.style.strokeDashoffset = circumference * (1 - pct);
+    ring.style.stroke = t.remaining < 10 ? '#ef4444' : '#634DB3';
+  }
+
+  if (btn) btn.textContent = t.running ? 'Pause' : t.remaining > 0 ? 'Resume' : 'Start';
+}
+
+function openLogin() { state.view = 'login'; render(); }
+
+function formatDate(d) {
+  return d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+// ============================================================
+// COACH VIEW
+// ============================================================
+function renderCoach() {
+  if (!state.workout) state.workout = emptyWorkout(null);
+
+  app.innerHTML = `
+  <div class="min-h-screen" style="position:relative;z-index:1">
+    <!-- Header -->
+    <div style="background:rgba(15,14,23,0.95);border-bottom:1px solid rgba(255,255,255,0.07);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;backdrop-filter:blur(12px)">
+      <div>
+        <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:white;letter-spacing:-0.02em">Coach Portal</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-top:1px">Mostafa Kodus</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="goClient()" class="btn-ghost" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:500">← Client View</button>
+      </div>
+    </div>
+
+    <!-- Nav tabs -->
+    <div style="padding:12px 16px;display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,0.06)">
+      <button class="nav-tab ${state.coachTab === 'builder' ? 'active' : ''}" onclick="setCoachTab('builder')">📋 Builder</button>
+      <button class="nav-tab ${state.coachTab === 'library' ? 'active' : ''}" onclick="setCoachTab('library')">📚 Library</button>
+    </div>
+
+    <div style="max-width:480px;margin:0 auto;padding:20px 16px 100px">
+      ${state.coachTab === 'builder' ? renderBuilder() : renderLibrary()}
+    </div>
+  </div>`;
+
+  initDropdowns();
+}
+
+function setCoachTab(tab) { state.coachTab = tab; render(); }
+
+// ============================================================
+// BUILDER
+// ============================================================
+function renderBuilder() {
+  const w = state.workout;
+  let html = '';
+
+  // Step 1: Workout type
+  html += `
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-weight:700;font-size:16px;color:white;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <span style="background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">1</span>
+      Workout Type
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${WORKOUT_TYPES.map(t => `
+        <button class="btn-type ${w.type === t.id ? 'active' : ''}" onclick="setWorkoutType('${t.id}')"
+          style="padding:14px 10px;border-radius:14px;text-align:center;font-weight:600;font-size:14px">
+          <div style="font-size:22px;margin-bottom:4px">${t.icon}</div>
+          ${t.label}
+        </button>
+      `).join('')}
+    </div>
+  </div>`;
+
+  if (!w.type || w.type === 'rest') {
+    if (w.type === 'rest') {
+      html += `
+      <div class="card" style="text-align:center;padding:32px;margin-bottom:16px">
+        <div style="font-size:48px;margin-bottom:12px">😴</div>
+        <div style="font-size:18px;font-weight:700;color:white;margin-bottom:8px">Rest Day</div>
+        <p style="color:rgba(255,255,255,0.4);font-size:14px">Recovery is part of training too.</p>
+        <div style="margin-top:16px">
+          <div class="label" style="margin-bottom:8px">Coach Note (optional)</div>
+          <textarea class="input-field" rows="3" placeholder="e.g. Great week — you've earned it!" oninput="w_coachNote(this.value)">${w.coachNote}</textarea>
+        </div>
+        <button onclick="saveWorkout()" class="btn-primary" style="margin-top:16px;padding:14px 32px;border-radius:14px;font-size:16px;font-weight:700;width:100%">Save Rest Day</button>
+      </div>`;
+    }
+    return html;
+  }
+
+  // Step 2: Warmup
+  html += `
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-weight:700;font-size:16px;color:white;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <span style="background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">2</span>
+      🔥 Warm Up
+    </div>
+    <div style="margin-bottom:12px">
+      <div class="label">Free-text note</div>
+      <input type="text" class="input-field" placeholder="e.g. usual upper warm up" value="${escHtml(w.warmupNote)}" oninput="w_warmupNote(this.value)">
+    </div>
+    <div class="label">Or pick exercises</div>
+    <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+      ${state.libraries.warmup.map((ex, i) => {
+        const item = (w.warmupItems||[]).find(x => x.name === ex);
+        return `
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px 12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <label style="display:flex;align-items:center;gap:10px;flex:1;cursor:pointer">
+              <input type="checkbox" style="width:18px;height:18px;accent-color:#634DB3;cursor:pointer" ${item ? 'checked' : ''} onchange="toggleWarmupItem('${escHtml(ex)}', this.checked)">
+              <span style="font-size:14px;color:${item ? 'white' : 'rgba(255,255,255,0.6)'}">${ex}</span>
+            </label>
+          </div>
+          ${item ? `
+          <div style="display:flex;gap:8px;margin-top:8px;margin-left:28px">
+            <input type="text" class="input-field" style="flex:1;padding:7px 10px;font-size:13px" placeholder="Sets x Reps/Duration" value="${escHtml(item.setsReps||'')}" oninput="updateWarmupItem('${escHtml(ex)}','setsReps',this.value)">
+          </div>` : ''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // Step 3: Sections
+  html += `
+  <div style="margin-bottom:16px">
+    <div style="font-weight:700;font-size:16px;color:white;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <span style="background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">3</span>
+      Sections
+    </div>
+    ${(w.sections||[]).map((sec, idx) => renderSection(sec, idx)).join('')}
+    <button onclick="addSection()" class="btn-ghost" style="width:100%;padding:14px;border-radius:14px;font-size:15px;font-weight:600;border-style:dashed;display:flex;align-items:center;justify-content:center;gap:8px">
+      <span style="font-size:20px;color:#634DB3">+</span> Add Section ${SECTION_LETTERS[(w.sections||[]).length] || ''}
+    </button>
+  </div>`;
+
+  // Step 4: Finisher
+  html += `
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${w.finisherEnabled ? '14px' : '0'}">
+      <div style="font-weight:700;font-size:16px;color:white;display:flex;align-items:center;gap:8px">
+        <span style="background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">4</span>
+        ⚡ Finisher
+      </div>
+      <label class="toggle"><input type="checkbox" ${w.finisherEnabled ? 'checked' : ''} onchange="w_finisherEnabled(this.checked)"><span class="toggle-slider"></span></label>
+    </div>
+    ${w.finisherEnabled ? `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div>
+        <div class="label">Rounds</div>
+        <input type="text" class="input-field" placeholder="e.g. 3 rounds, AMRAP 10 min" value="${escHtml(w.finisherRounds)}" oninput="w_finisherRounds(this.value)">
+      </div>
+      <div>
+        <div class="label">Exercises (free text)</div>
+        <textarea class="input-field" rows="3" placeholder="e.g. 10 burpees, 10 box jumps" oninput="w_finisherExercises(this.value)">${escHtml(w.finisherExercises)}</textarea>
+      </div>
+      <div class="label" style="margin-bottom:4px">Or pick from library</div>
+      ${state.libraries.finisher.map(ex => {
+        const selected = (w.finisherItems||[]).some(x => x.name === ex);
+        return `
+        <label style="display:flex;align-items:center;gap:10px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;cursor:pointer">
+          <input type="checkbox" style="width:18px;height:18px;accent-color:#634DB3" ${selected ? 'checked' : ''} onchange="toggleFinisherItem('${escHtml(ex)}',this.checked)">
+          <span style="font-size:14px;color:rgba(255,255,255,0.7)">${ex}</span>
+        </label>`;
+      }).join('')}
+    </div>` : ''}
+  </div>`;
+
+  // Step 5: Coach note
+  html += `
+  <div class="card" style="margin-bottom:16px">
+    <div style="font-weight:700;font-size:16px;color:white;margin-bottom:12px;display:flex;align-items:center;gap:8px">
+      <span style="background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">5</span>
+      📝 Coach Note to Khaled
+    </div>
+    <textarea class="input-field" rows="3" placeholder="e.g. Focus on form today, not weight." oninput="w_coachNote(this.value)">${escHtml(w.coachNote)}</textarea>
+  </div>`;
+
+  // Step 6: Save
+  html += `
+  <button onclick="saveWorkout()" class="btn-primary" style="width:100%;padding:18px;border-radius:16px;font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px">
+    <span>💾</span> Save Workout
+  </button>
+  ${state.savedWorkouts[todayKey()] ? `<p style="text-align:center;color:rgba(255,255,255,0.35);font-size:12px;margin-top:8px">Last saved: ${todayKey()}</p>` : ''}`;
+
+  return html;
+}
+
+function renderSection(sec, idx) {
+  const w = state.workout;
+  const isFirst = idx === 0;
+  const isLast = idx === w.sections.length - 1;
+
+  let html = `
+  <div class="section-card fade-in" style="margin-bottom:12px">
+    <div class="section-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px;font-weight:700;color:#9988de;font-family:Georgia,serif">${sec.letter}</span>
+        <span style="font-size:13px;color:rgba(255,255,255,0.5)">${sec.sectionType ? sec.sectionType.charAt(0).toUpperCase() + sec.sectionType.slice(1) : 'Choose type below'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        ${!isFirst ? `<button onclick="moveSection(${idx},-1)" style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">↑</button>` : ''}
+        ${!isLast ? `<button onclick="moveSection(${idx},1)" style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">↓</button>` : ''}
+        <button onclick="deleteSection(${idx})" style="width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+    <div style="padding:14px">`;
+
+  // Type picker
+  if (!sec.sectionType) {
+    html += `
+    <div style="margin-bottom:4px">
+      <div class="label" style="margin-bottom:10px">Choose section type</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <button class="section-type-btn" onclick="setSectionType(${idx},'single')" style="padding:14px 8px;border-radius:12px;text-align:center">
+          <div style="font-size:20px;font-weight:700;color:#9988de;font-family:Georgia,serif;margin-bottom:4px">${sec.letter}</div>
+          <div style="font-size:12px;font-weight:600;color:white">Single</div>
+        </button>
+        <button class="section-type-btn" onclick="setSectionType(${idx},'superset')" style="padding:14px 8px;border-radius:12px;text-align:center">
+          <div style="font-size:14px;font-weight:700;color:#9988de;font-family:Georgia,serif;margin-bottom:4px">${sec.letter}1·${sec.letter}2</div>
+          <div style="font-size:12px;font-weight:600;color:white">Superset</div>
+        </button>
+        <button class="section-type-btn" onclick="setSectionType(${idx},'triset')" style="padding:14px 8px;border-radius:12px;text-align:center">
+          <div style="font-size:11px;font-weight:700;color:#9988de;font-family:Georgia,serif;margin-bottom:4px">${sec.letter}1·${sec.letter}2·${sec.letter}3</div>
+          <div style="font-size:12px;font-weight:600;color:white">Triset</div>
+        </button>
+      </div>
+    </div>`;
+  } else {
+    // Type selector (compact, can change)
+    html += `
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      ${['single','superset','triset'].map(t => `
+        <button class="section-type-btn ${sec.sectionType === t ? 'active' : ''}" onclick="setSectionType(${idx},'${t}')" style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;color:white">
+          ${t.charAt(0).toUpperCase()+t.slice(1)}
+        </button>`).join('')}
+    </div>`;
+
+    // Exercise slots
+    sec.exercises.forEach((ex, ei) => {
+      const slotLabel = sec.sectionType === 'single' ? sec.letter : `${sec.letter}${ei+1}`;
+      html += `
+      <div class="exercise-slot" style="margin-bottom:10px">
+        <div class="slot-label" style="margin-bottom:10px">${slotLabel}</div>
+        <div style="position:relative" data-dropdown="${idx}-${ei}">
+          <div class="label">Exercise</div>
+          <input type="text" class="input-field" placeholder="Search or type..."
+            value="${escHtml(ex.name || ex.customName || '')}"
+            oninput="handleExSearch(${idx},${ei},this)"
+            onfocus="showDropdown(${idx},${ei})"
+            autocomplete="off">
+          <div id="dd-${idx}-${ei}" class="dropdown-list" style="display:none"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+          <div>
+            <div class="label">Sets × Reps</div>
+            <input type="text" class="input-field" placeholder="e.g. 3 x 8" value="${escHtml(ex.setsReps||'')}" oninput="updateExField(${idx},${ei},'setsReps',this.value)">
+          </div>
+          <div>
+            <div class="label">YouTube URL</div>
+            <input type="text" class="input-field" placeholder="Paste link" value="${escHtml(ex.youtubeUrl||'')}" oninput="updateExField(${idx},${ei},'youtubeUrl',this.value)">
+          </div>
+        </div>
+      </div>`;
+    });
+
+    // Section-level fields
+    html += `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+      <div>
+        <div class="label">Rest</div>
+        <input type="text" class="input-field" placeholder="e.g. 60 secs" value="${escHtml(sec.rest||'')}" oninput="updateSectionField(${idx},'rest',this.value)">
+      </div>
+      <div>
+        <div class="label">Coach Notes</div>
+        <input type="text" class="input-field" placeholder="e.g. build weight" value="${escHtml(sec.coachNote||'')}" oninput="updateSectionField(${idx},'coachNote',this.value)">
+      </div>
+    </div>`;
+  }
+
+  html += `</div></div>`;
+  return html;
+}
+
+// ============================================================
+// LIBRARY MANAGER
+// ============================================================
+function renderLibrary() {
+  const catNames = {
+    shoulders: 'Shoulders', back_triceps: 'Back & Triceps', chest_biceps: 'Chest & Biceps',
+    legs: 'Leg Day', warmup: 'Warmup', finisher: 'Finisher'
+  };
+
+  let html = `
+  <div>
+    <div style="font-weight:700;font-size:18px;color:white;margin-bottom:4px;font-family:Georgia,serif">Exercise Library</div>
+    <p style="color:rgba(255,255,255,0.4);font-size:13px;margin-bottom:20px">Manage all exercises by category</p>
+
+    <!-- Add new -->
+    <div class="card-elevated" style="margin-bottom:20px">
+      <div style="font-weight:600;font-size:14px;color:white;margin-bottom:12px">+ Add Exercise</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input type="text" id="lib-new-name" class="input-field" placeholder="Exercise name">
+        <select id="lib-new-cat" class="input-field">
+          ${Object.entries(catNames).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+        </select>
+        <button onclick="addLibraryExercise()" class="btn-primary" style="padding:12px;border-radius:12px;font-weight:600">Add to Library</button>
+      </div>
+    </div>
+
+    ${Object.entries(catNames).map(([cat, catLabel]) => `
+    <div class="card" style="margin-bottom:12px">
+      <div style="font-weight:700;font-size:14px;color:#9988de;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between">
+        <span>${catLabel}</span>
+        <span style="font-size:12px;color:rgba(255,255,255,0.3)">${(state.libraries[cat]||[]).length} exercises</span>
+      </div>
+      ${(state.libraries[cat]||[]).map((ex, i) => `
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.05)" id="lib-row-${cat}-${i}">
+        <span style="flex:1;font-size:14px;color:rgba(255,255,255,0.8)" id="lib-name-${cat}-${i}">${ex}</span>
+        <button onclick="editLibraryExercise('${cat}',${i})" style="padding:5px 10px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-size:12px;cursor:pointer">Edit</button>
+        <button onclick="deleteLibraryExercise('${cat}',${i})" style="padding:5px 8px;border-radius:8px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:12px;cursor:pointer">✕</button>
+      </div>`).join('')}
+    </div>`).join('')}
+  </div>`;
+
+  return html;
+}
+
+function addLibraryExercise() {
+  const name = document.getElementById('lib-new-name').value.trim();
+  const cat = document.getElementById('lib-new-cat').value;
+  if (!name) return;
+  if (!state.libraries[cat]) state.libraries[cat] = [];
+  state.libraries[cat].push(name);
+  saveLibraries();
+  render();
+}
+
+function deleteLibraryExercise(cat, idx) {
+  state.libraries[cat].splice(idx, 1);
+  saveLibraries();
+  render();
+}
+
+function editLibraryExercise(cat, idx) {
+  const current = state.libraries[cat][idx];
+  const nameEl = document.getElementById(`lib-name-${cat}-${idx}`);
+  const row = document.getElementById(`lib-row-${cat}-${idx}`);
+
+  nameEl.innerHTML = `<input type="text" class="input-field" style="padding:5px 8px;font-size:13px" value="${escHtml(current)}" id="lib-edit-${cat}-${idx}">`;
+
+  const catNames = { shoulders:'Shoulders',back_triceps:'Back & Triceps',chest_biceps:'Chest & Biceps',legs:'Leg Day',warmup:'Warmup',finisher:'Finisher' };
+  const saveBtn = row.querySelector('button:nth-child(2)');
+  saveBtn.textContent = 'Save';
+  saveBtn.onclick = () => {
+    const newName = document.getElementById(`lib-edit-${cat}-${idx}`).value.trim();
+    if (newName) { state.libraries[cat][idx] = newName; saveLibraries(); render(); }
+  };
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function setWorkoutType(type) {
+  if (!state.workout) state.workout = emptyWorkout(type);
+  state.workout.type = type;
+  render();
+}
+
+function addSection() {
+  const w = state.workout;
+  const letter = SECTION_LETTERS[w.sections.length] || 'X';
+  const sec = emptySection(letter);
+  w.sections.push(sec);
+  render();
+}
+
+function deleteSection(idx) {
+  state.workout.sections.splice(idx, 1);
+  // Reassign letters
+  state.workout.sections.forEach((s, i) => s.letter = SECTION_LETTERS[i]);
+  render();
+}
+
+function moveSection(idx, dir) {
+  const secs = state.workout.sections;
+  const target = idx + dir;
+  if (target < 0 || target >= secs.length) return;
+  [secs[idx], secs[target]] = [secs[target], secs[idx]];
+  // Reassign letters
+  secs.forEach((s, i) => s.letter = SECTION_LETTERS[i]);
+  render();
+}
+
+function setSectionType(idx, type) {
+  const sec = state.workout.sections[idx];
+  sec.sectionType = type;
+  const count = type === 'single' ? 1 : type === 'superset' ? 2 : 3;
+  while (sec.exercises.length < count) sec.exercises.push(emptyExercise());
+  while (sec.exercises.length > count) sec.exercises.pop();
+  render();
+}
+
+function updateSectionField(idx, field, val) {
+  state.workout.sections[idx][field] = val;
+}
+
+function updateExField(sIdx, eIdx, field, val) {
+  state.workout.sections[sIdx].exercises[eIdx][field] = val;
+}
+
+function toggleWarmupItem(name, checked) {
+  if (!state.workout.warmupItems) state.workout.warmupItems = [];
+  if (checked) {
+    if (!state.workout.warmupItems.find(x => x.name === name)) {
+      state.workout.warmupItems.push({ name, setsReps: '' });
+    }
+  } else {
+    state.workout.warmupItems = state.workout.warmupItems.filter(x => x.name !== name);
+  }
+  render();
+}
+
+function updateWarmupItem(name, field, val) {
+  const item = state.workout.warmupItems.find(x => x.name === name);
+  if (item) item[field] = val;
+}
+
+function toggleFinisherItem(name, checked) {
+  if (!state.workout.finisherItems) state.workout.finisherItems = [];
+  if (checked) {
+    if (!state.workout.finisherItems.find(x => x.name === name)) state.workout.finisherItems.push({ name });
+  } else {
+    state.workout.finisherItems = state.workout.finisherItems.filter(x => x.name !== name);
+  }
+}
+
+function w_warmupNote(v) { state.workout.warmupNote = v; }
+function w_coachNote(v) { state.workout.coachNote = v; }
+function w_finisherEnabled(v) { state.workout.finisherEnabled = v; render(); }
+function w_finisherRounds(v) { state.workout.finisherRounds = v; }
+function w_finisherExercises(v) { state.workout.finisherExercises = v; }
+
+function saveWorkout() {
+  const w = state.workout;
+  // Convert section exercises to have proper name
+  (w.sections||[]).forEach(sec => {
+    sec.exercises.forEach(ex => {
+      if (!ex.name && ex.customName) ex.name = ex.customName;
+    });
+    // Store sectionType as type for client display
+    sec.type = sec.sectionType;
+  });
+  state.savedWorkouts[w.date] = JSON.parse(JSON.stringify(w));
+  saveWorkouts();
+  // Show saved feedback
+  const btn = document.querySelector('button[onclick="saveWorkout()"]');
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Saved!';
+    btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = ''; }, 2000);
+  }
+}
+
+// ============================================================
+// SEARCH DROPDOWN
+// ============================================================
+function getAllExercises(workoutType) {
+  const libs = [];
+  const libKey = WORKOUT_TYPES.find(t => t.id === workoutType)?.lib;
+  if (libKey && state.libraries[libKey]) libs.push(...state.libraries[libKey]);
+  // Add unique items from other categories
+  Object.keys(state.libraries).forEach(k => {
+    if (k !== libKey && k !== 'warmup' && k !== 'finisher') {
+      state.libraries[k].forEach(ex => { if (!libs.includes(ex)) libs.push(ex); });
+    }
+  });
+  libs.push('Custom');
+  return libs;
+}
+
+function handleExSearch(sIdx, eIdx, input) {
+  const val = input.value;
+  updateExField(sIdx, eIdx, 'name', val);
+  showDropdown(sIdx, eIdx, val);
+}
+
+function showDropdown(sIdx, eIdx, filter = '') {
+  const dd = document.getElementById(`dd-${sIdx}-${eIdx}`);
+  if (!dd) return;
+  const all = getAllExercises(state.workout.type);
+  const input = dd.previousElementSibling;
+  const query = filter !== undefined ? filter : (input ? input.value : '');
+  const filtered = all.filter(e => e.toLowerCase().includes(query.toLowerCase())).slice(0, 20);
+  if (filtered.length === 0) { dd.style.display = 'none'; return; }
+  dd.innerHTML = filtered.map(e => `<div class="dropdown-item" onmousedown="selectExercise(${sIdx},${eIdx},'${escHtml(e)}')">${e}</div>`).join('');
+  dd.style.display = 'block';
+}
+
+function selectExercise(sIdx, eIdx, name) {
+  const ex = state.workout.sections[sIdx].exercises[eIdx];
+  if (name === 'Custom') {
+    ex.name = '';
+    ex.isCustom = true;
+  } else {
+    ex.name = name;
+    ex.isCustom = false;
+  }
+  const dd = document.getElementById(`dd-${sIdx}-${eIdx}`);
+  if (dd) dd.style.display = 'none';
+  const input = dd ? dd.previousElementSibling : null;
+  if (input) input.value = name === 'Custom' ? '' : name;
+  if (name === 'Custom' && input) { input.placeholder = 'Type exercise name...'; input.focus(); }
+}
+
+function initDropdowns() {
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('.dropdown-list').forEach(dd => {
+      if (!dd.contains(e.target) && e.target !== dd.previousElementSibling) {
+        dd.style.display = 'none';
+      }
+    });
+  }, { once: false });
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadState();
+render();
+</script>
+</body>
+</html>
