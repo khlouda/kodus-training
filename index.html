@@ -1641,11 +1641,12 @@ function setSectionType(idx, type) {
 }
 
 function rerenderSection(idx) {
-  const el = document.getElementById(`sec-${idx}`);
-  if (!el) { render(); return; }
-  const tmp = document.createElement('div');
-  tmp.innerHTML = renderSection(S.workout.sections[idx], idx);
-  el.replaceWith(tmp.firstElementChild);
+  const list = document.getElementById('sections-list');
+  if (list) {
+    list.innerHTML = (S.workout.sections || []).map((sec, i) => renderSection(sec, i)).join('');
+  } else {
+    render();
+  }
 }
 
 function pickReps(sIdx, eIdx, val) {
