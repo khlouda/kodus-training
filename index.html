@@ -1212,6 +1212,20 @@ function builderMainHtml() {
     </button>
   </div>`;
 
+  /* Global rest */
+  const _restVals = (w.sections||[]).filter(s=>s.rest).map(s=>s.rest);
+  const _globalRest = _restVals.length && _restVals.every(r=>r===_restVals[0]) ? _restVals[0] : (_restVals.length ? 'Mixed' : '');
+  h += `<div class="card" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+      <span style="font-size:14px">⏱</span>
+      <span style="font-size:14px;font-weight:700;color:white">Rest time for all sections</span>
+      ${_globalRest?`<span style="margin-left:auto;font-size:12px;font-weight:700;color:#9988de;background:rgba(99,77,179,0.15);border:1px solid rgba(99,77,179,0.3);border-radius:7px;padding:2px 9px">${esc(_globalRest)}</span>`:''}
+    </div>
+    <div class="chips-row">
+      ${['60s','90s','2min','3min'].map(p=>`<button class="chip ${_globalRest===p?'selected':''}" onclick="setGlobalRest('${p}')">${p}</button>`).join('')}
+    </div>
+  </div>`;
+
   /* Sections */
   h += `<div style="margin-bottom:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
@@ -1616,6 +1630,14 @@ function copyLastWorkout() {
   if (!lastSession) return;
   S.workout = JSON.parse(JSON.stringify(lastSession.workout));
   S.workout.date = todayKey();
+  render();
+}
+
+function setGlobalRest(val) {
+  (S.workout.sections || []).forEach(sec => { sec.rest = val; });
+  const list = document.getElementById('sections-list');
+  if (list) list.innerHTML = (S.workout.sections||[]).map((sec,i)=>renderSection(sec,i)).join('');
+  // Re-render the global rest chip row to show new selection
   render();
 }
 
