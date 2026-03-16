@@ -1179,12 +1179,16 @@ function builderMainHtml() {
         const wuList = S.libraries.warmup || [];
         return `
       <div class="warmup-item-row">
-        <div style="position:relative;flex:1;min-width:0">
-          <select onchange="S.workout.warmupItems[${i}].name=this.value;render()"
-            style="width:100%;appearance:none;-webkit-appearance:none;padding:7px 22px 7px 0;background:transparent;border:none;color:white;font-size:14px;font-weight:600;cursor:pointer;outline:none">
-            ${[item.name, ...wuList.filter(n=>n!==item.name)].map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}
-          </select>
-          <span style="position:absolute;right:2px;top:50%;transform:translateY(-50%);color:#9988de;font-size:10px;pointer-events:none">▾</span>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;overflow:hidden">
+          <span style="font-size:14px;font-weight:600;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(item.name)}</span>
+          <div style="position:relative;flex-shrink:0">
+            <select onchange="S.workout.warmupItems[${i}].name=this.value;render()"
+              style="appearance:none;-webkit-appearance:none;padding:3px 18px 3px 8px;background:rgba(99,77,179,0.15);border:1px solid rgba(99,77,179,0.3);border-radius:7px;color:#c4bde8;font-size:11px;font-weight:600;cursor:pointer;outline:none;max-width:90px">
+              <option value="" disabled selected>change</option>
+              ${wuList.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}
+            </select>
+            <span style="position:absolute;right:4px;top:50%;transform:translateY(-50%);color:#9988de;font-size:9px;pointer-events:none">▾</span>
+          </div>
         </div>
         <input type="text" value="${esc(item.setsReps)}" placeholder="" oninput="S.workout.warmupItems[${i}].setsReps=this.value"
           style="width:88px;padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;flex-shrink:0;text-align:center">
