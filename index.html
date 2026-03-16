@@ -354,7 +354,6 @@ function emptyEx() {
 // ============================================================
 const app = document.getElementById('app');
 function render() {
-  if (S.view === 'login') { renderLogin(); return; }
   if (S.view === 'coach') { renderCoach(); return; }
   renderClient();
 }
@@ -362,43 +361,6 @@ function render() {
 // ============================================================
 // LOGIN
 // ============================================================
-function renderLogin() {
-  app.innerHTML = `
-  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px">
-    <div style="width:100%;max-width:340px" class="fade-up">
-      <div style="text-align:center;margin-bottom:28px">
-        <div style="width:64px;height:64px;background:linear-gradient(135deg,#7761d0,#5241a0);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 8px 32px rgba(99,77,179,0.5);font-size:28px">🏋️</div>
-        <h1 class="t-display" style="font-size:22px;font-weight:700;color:white;margin-bottom:4px">Coach Portal</h1>
-        <p style="color:var(--text-dim);font-size:13px">Enter password to continue</p>
-      </div>
-      <div class="card-elevated">
-        <div style="margin-bottom:14px">
-          <div class="t-label" style="margin-bottom:7px">Password</div>
-          <input id="pw" type="password" class="input" placeholder="Enter password" autocomplete="off">
-        </div>
-        <div id="pw-err" style="display:none;color:#f87171;font-size:13px;margin-bottom:10px">Incorrect password</div>
-        <button onclick="attemptLogin()" class="btn-primary" style="width:100%;padding:14px;border-radius:13px;font-size:15px;font-weight:700">Enter Coach View</button>
-        <button onclick="S.view='client';render()" class="btn-ghost" style="width:100%;padding:13px;border-radius:13px;font-size:14px;font-weight:500;margin-top:10px">Back to My Workouts</button>
-      </div>
-    </div>
-  </div>`;
-  document.getElementById('pw').addEventListener('keydown', e => { if(e.key==='Enter') attemptLogin(); });
-  setTimeout(()=>document.getElementById('pw')?.focus(),100);
-}
-
-function attemptLogin() {
-  if (document.getElementById('pw').value === 'mostafa') {
-    S.view = 'coach';
-    if (!S.workout) {
-      const existing = getTodayWorkout();
-      S.workout = existing ? JSON.parse(JSON.stringify(existing)) : emptyWorkout(null);
-    }
-    render();
-  } else {
-    document.getElementById('pw-err').style.display='block';
-    document.getElementById('pw').style.borderColor='#f87171';
-  }
-}
 
 // ============================================================
 // CLIENT VIEW
@@ -416,7 +378,7 @@ function renderClient() {
       </div>
       <div style="display:flex;gap:8px">
         <button onclick="window.print()" class="btn-ghost no-print" style="padding:8px 12px;border-radius:10px;font-size:12px;font-weight:600">Print</button>
-        <button onclick="S.view='login';render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">🔐</button>
+        <button onclick="S.view='coach';render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer">🏋️</button>
       </div>
     </div>
     <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px">
@@ -542,7 +504,10 @@ function renderClientWorkout(w) {
 // COACH VIEW
 // ============================================================
 function renderCoach() {
-  if (!S.workout) S.workout = emptyWorkout(null);
+  if (!S.workout) {
+    const existing = getTodayWorkout();
+    S.workout = existing ? JSON.parse(JSON.stringify(existing)) : emptyWorkout(null);
+  }
   app.innerHTML = `
   <div style="min-height:100vh">
     <div style="background:rgba(15,14,23,0.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
