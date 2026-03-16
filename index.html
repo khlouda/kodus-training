@@ -971,7 +971,7 @@ function renderSection(sec, idx) {
     html += `
     <div style="display:flex;gap:6px;margin-bottom:14px">
       ${['single','superset','triset'].map(t => `
-        <button class="section-type-btn ${sec.sectionType === t ? 'active' : ''}" onclick="setSectionType(${idx},'${t}')" style="flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;color:white">
+        <button class="section-type-btn ${sec.sectionType === t ? 'active' : ''}" onclick="setSectionType(${idx},'${t}')" style="flex:1;padding:12px 4px;border-radius:10px;font-size:13px;font-weight:600;color:white">
           ${t.charAt(0).toUpperCase()+t.slice(1)}
         </button>`).join('')}
     </div>`;
