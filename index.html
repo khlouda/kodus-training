@@ -539,7 +539,7 @@ let S = {
   workout: null,
   savedWorkouts: {},
   libraries: {},
-  timer: { running: false, total: 0, remaining: 0, _iv: null },
+  timer: { sIdx: null, running: false, total: 0, remaining: 0, _iv: null },
   pickerCtx: null,
   showTypeChooser: false,
   lastSessionOpen: false,
@@ -694,25 +694,34 @@ function render() {
 // ============================================================
 // CLIENT VIEW
 // ============================================================
-function timerHtml() {
-  const C = 2*Math.PI*50;
-  return `<div class="card no-print" id="rest-timer-card" style="text-align:center">
-    <div class="t-label" style="margin-bottom:14px">Rest Timer</div>
-    <div style="position:relative;display:inline-block;width:120px;height:120px;margin-bottom:14px">
-      <svg width="120" height="120" style="transform:rotate(-90deg)">
-        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="7"/>
-        <circle cx="60" cy="60" r="50" fill="none" stroke="#634DB3" stroke-width="7" stroke-linecap="round"
-          stroke-dasharray="${C}" stroke-dashoffset="${C}" id="timer-ring"/>
-      </svg>
-      <div id="timer-num" class="timer-num" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">0:00</div>
-    </div>
-    <div style="display:flex;gap:7px;justify-content:center;margin-bottom:12px">
-      <button onclick="setTimer(60)"  class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">60s</button>
-      <button onclick="setTimer(90)"  class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">90s</button>
-      <button onclick="setTimer(120)" class="btn-ghost" style="padding:8px 13px;border-radius:10px;font-size:13px;font-weight:600">2min</button>
-    </div>
-    <button onclick="toggleTimer()" id="timer-btn" class="btn-primary" style="padding:10px 26px;border-radius:12px;font-size:14px;font-weight:700">Start</button>
-    <button onclick="resetTimer()" class="btn-ghost" style="padding:10px 14px;border-radius:12px;font-size:13px;margin-left:8px">Reset</button>
+function parseRestSeconds(str) {
+  if (!str || str === '—') return 60;
+  const min = str.match(/(\d+)\s*min/i);
+  if (min) return parseInt(min[1]) * 60;
+  const sec = str.match(/(\d+)/);
+  return sec ? Math.max(10, parseInt(sec[1])) : 60;
+}
+
+function sectionTimerHtml(idx, restStr) {
+  const total = parseRestSeconds(restStr);
+  const isActive = S.timer.sIdx === idx;
+  const remaining = isActive ? S.timer.remaining : total;
+  const isRunning = isActive && S.timer.running;
+  const isDone = isActive && !S.timer.running && S.timer.remaining <= 0;
+  const m = Math.floor(remaining / 60), s = remaining % 60;
+  const timeStr = `${m}:${s.toString().padStart(2,'0')}`;
+  const timeColor = (isActive && remaining < 10 && remaining > 0) ? '#f87171' : 'white';
+  const btnText = isDone ? 'Done ✓' : (isRunning ? 'Pause' : (isActive && remaining < total ? 'Resume' : 'Start'));
+  const btnBg = isDone ? 'rgba(34,197,94,0.15)' : 'rgba(99,77,179,0.5)';
+  const btnColor = isDone ? '#4ade80' : 'white';
+  const statusText = isDone ? 'Rest done! ✓' : (isRunning ? 'resting…' : 'rest');
+  const statusColor = isDone ? '#4ade80' : '#9988de';
+  return `<div id="sec-timer-${idx}" style="margin-top:14px;padding:10px 14px;background:rgba(99,77,179,0.07);border:1px solid rgba(99,77,179,0.18);border-radius:12px;display:flex;align-items:center;gap:12px">
+    <span style="font-size:15px;flex-shrink:0">⏱</span>
+    <span id="sec-timer-num-${idx}" style="font-size:17px;font-weight:700;color:${timeColor};font-variant-numeric:tabular-nums;min-width:38px">${timeStr}</span>
+    <span id="sec-timer-status-${idx}" style="font-size:12px;color:${statusColor};flex:1">${statusText}</span>
+    <button id="sec-timer-btn-${idx}" onclick="startSectionTimer(${idx})"
+      style="padding:8px 20px;background:${btnBg};border:none;border-radius:9px;color:${btnColor};font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;min-width:76px;-webkit-tap-highlight-color:transparent;touch-action:manipulation">${btnText}</button>
   </div>`;
 }
 
@@ -779,7 +788,6 @@ function renderClient() {
           <!-- Left sidebar -->
           <div class="no-print" style="width:320px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 22px;position:sticky;top:90px;align-self:flex-start;display:flex;flex-direction:column;gap:14px;border-radius:20px 0 0 20px">
             ${renderWeekStrip()}
-            ${timerHtml()}
             ${historyHtml(true)}
           </div>
 
@@ -797,7 +805,6 @@ function renderClient() {
       <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px">
         ${renderWeekStrip()}
         ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
-        <div style="margin-top:16px">${timerHtml()}</div>
         <div style="margin-top:14px">${historyHtml(false)}</div>
       </div>
     </div>`;
@@ -906,6 +913,7 @@ function renderClientWorkout(w) {
             </div>`:''}
           </div>`;
         }).join('')}
+        ${sectionTimerHtml(idx, sec.rest)}
         ${sec.coachNote?`<div style="margin-top:11px;padding:10px 12px;background:rgba(99,77,179,0.1);border-radius:9px;border-left:3px solid #634DB3;font-size:13px;color:#c4bde8;font-style:italic">${esc(sec.coachNote)}</div>`:''}
       </div>
     </div>`;
@@ -1705,45 +1713,58 @@ function editLibEx(cat,i) {
 // ============================================================
 // TIMER
 // ============================================================
-function setTimer(s) {
-  clearInterval(S.timer._iv);
-  S.timer = { running:false, total:s, remaining:s, _iv:null };
-  tickTimer();
-}
-function toggleTimer() {
-  if (S.timer.remaining<=0) return;
-  if (S.timer.running) {
-    clearInterval(S.timer._iv); S.timer.running=false; S.timer._iv=null;
-  } else {
-    S.timer.running=true;
-    S.timer._iv = setInterval(()=>{
-      S.timer.remaining--;
-      if (S.timer.remaining<=0) {
-        clearInterval(S.timer._iv); S.timer.running=false; S.timer._iv=null;
-        if(navigator.vibrate) navigator.vibrate([200,100,200]);
-      }
-      tickTimer();
-    },1000);
+function startSectionTimer(idx) {
+  const t = S.timer;
+  // Tap on same running timer → pause
+  if (t.sIdx === idx && t.running) {
+    clearInterval(t._iv);
+    t.running = false; t._iv = null;
+    tickSectionTimer();
+    return;
   }
-  tickTimer();
+  // Cancel any other running timer
+  clearInterval(t._iv);
+  const sec = (getTodayWorkout()||S.workout)?.sections?.[idx];
+  const seconds = parseRestSeconds(sec?.rest);
+  // Resume same section if paused mid-way, otherwise restart
+  const remaining = (t.sIdx === idx && t.remaining > 0 && t.remaining < seconds) ? t.remaining : seconds;
+  S.timer = { sIdx: idx, running: true, total: seconds, remaining, _iv: null };
+  S.timer._iv = setInterval(() => {
+    S.timer.remaining--;
+    if (S.timer.remaining <= 0) {
+      clearInterval(S.timer._iv); S.timer.running = false; S.timer._iv = null;
+      if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    }
+    tickSectionTimer();
+  }, 1000);
+  tickSectionTimer();
 }
-function resetTimer() {
-  clearInterval(S.timer._iv); S.timer.remaining=S.timer.total; S.timer.running=false; S.timer._iv=null; tickTimer();
-}
-function tickTimer() {
-  const t=S.timer;
-  const num=document.getElementById('timer-num'); if(!num)return;
-  const m=Math.floor(t.remaining/60), s=t.remaining%60;
-  num.textContent=`${m}:${s.toString().padStart(2,'0')}`;
-  num.style.color = t.remaining<10&&t.remaining>0?'#f87171':'white';
-  const ring=document.getElementById('timer-ring'); if(ring){
-    const C=2*Math.PI*50, pct=t.total>0?t.remaining/t.total:0;
-    ring.style.strokeDashoffset=C*(1-pct);
-    ring.style.stroke=t.remaining<10&&t.remaining>0?'#ef4444':'#634DB3';
-    ring.style.transition='stroke-dashoffset 1s linear';
+
+function tickSectionTimer() {
+  const t = S.timer;
+  const idx = t.sIdx;
+  if (idx == null || idx < 0) return;
+  const numEl = document.getElementById(`sec-timer-num-${idx}`);
+  if (!numEl) return;
+  const btnEl = document.getElementById(`sec-timer-btn-${idx}`);
+  const statusEl = document.getElementById(`sec-timer-status-${idx}`);
+  const m = Math.floor(t.remaining / 60), s = t.remaining % 60;
+  numEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  numEl.style.color = (t.remaining < 10 && t.remaining > 0) ? '#f87171' : 'white';
+  if (btnEl) {
+    const isDone = !t.running && t.remaining <= 0;
+    btnEl.textContent = isDone ? 'Done ✓' : (t.running ? 'Pause' : (t.remaining < t.total ? 'Resume' : 'Start'));
+    btnEl.style.background = isDone ? 'rgba(34,197,94,0.15)' : 'rgba(99,77,179,0.5)';
+    btnEl.style.color = isDone ? '#4ade80' : 'white';
   }
-  const btn=document.getElementById('timer-btn'); if(btn) btn.textContent=t.running?'Pause':t.remaining>0?'Resume':'Start';
+  if (statusEl) {
+    const isDone = !t.running && t.remaining <= 0;
+    statusEl.textContent = isDone ? 'Rest done! ✓' : (t.running ? 'resting…' : 'rest');
+    statusEl.style.color = isDone ? '#4ade80' : '#9988de';
+  }
 }
+
+function tickTimer() {} // kept for legacy call-sites, no-op
 
 // ============================================================
 // CLIENT HELPERS
