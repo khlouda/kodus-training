@@ -688,8 +688,6 @@ window.addEventListener('resize', () => {
 
 function render() {
   if (S.view === 'coach') { renderCoach(); } else { renderClient(); }
-  // Fix select values after innerHTML injection (browser doesn't apply selected attr reliably)
-  document.querySelectorAll('select[data-val]').forEach(sel => { sel.value = sel.dataset.val; });
 }
 
 // ============================================================
@@ -1182,9 +1180,9 @@ function builderMainHtml() {
         return `
       <div class="warmup-item-row">
         <div style="position:relative;flex:1;min-width:0">
-          <select data-val="${esc(item.name)}" onchange="S.workout.warmupItems[${i}].name=this.value;render()"
+          <select onchange="S.workout.warmupItems[${i}].name=this.value;render()"
             style="width:100%;appearance:none;-webkit-appearance:none;padding:7px 22px 7px 0;background:transparent;border:none;color:white;font-size:14px;font-weight:600;cursor:pointer;outline:none">
-            ${wuList.map(n=>`<option value="${esc(n)}" ${item.name===n?'selected':''}>${esc(n)}</option>`).join('')}
+            ${[item.name, ...wuList.filter(n=>n!==item.name)].map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}
           </select>
           <span style="position:absolute;right:2px;top:50%;transform:translateY(-50%);color:#9988de;font-size:10px;pointer-events:none">▾</span>
         </div>
