@@ -1179,21 +1179,17 @@ function builderMainHtml() {
       ${(w.warmupItems||[]).map((item,i)=>{
         const wuList = S.libraries.warmup || [];
         return `
-      <div class="warmup-item-row" style="flex-direction:column;align-items:stretch;gap:7px;padding:10px 12px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="flex:1;min-width:0;font-size:13px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(item.name)}</div>
-          <input type="text" value="${esc(item.setsReps)}" placeholder="Time / Cals" oninput="S.workout.warmupItems[${i}].setsReps=this.value"
-            style="width:95px;padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;flex-shrink:0;text-align:center">
-          <button onclick="removeWarmupItem(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
-        </div>
-        <div style="position:relative">
+      <div class="warmup-item-row">
+        <div style="position:relative;flex:1;min-width:0">
           <select onchange="S.workout.warmupItems[${i}].name=this.value;render()"
-            style="width:100%;appearance:none;-webkit-appearance:none;padding:5px 28px 5px 10px;background:rgba(99,77,179,0.12);border:1px solid rgba(99,77,179,0.35);border-radius:8px;color:#c4bde8;font-size:12px;cursor:pointer;outline:none">
-            <option value="" disabled>Change exercise…</option>
+            style="width:100%;appearance:none;-webkit-appearance:none;padding:7px 22px 7px 0;background:transparent;border:none;color:white;font-size:14px;font-weight:600;cursor:pointer;outline:none">
             ${wuList.map(n=>`<option value="${esc(n)}" ${item.name===n?'selected':''}>${esc(n)}</option>`).join('')}
           </select>
-          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:#9988de;font-size:10px;pointer-events:none">▾</span>
+          <span style="position:absolute;right:2px;top:50%;transform:translateY(-50%);color:#9988de;font-size:10px;pointer-events:none">▾</span>
         </div>
+        <input type="text" value="${esc(item.setsReps)}" placeholder="Time / Sets" oninput="S.workout.warmupItems[${i}].setsReps=this.value"
+          style="width:88px;padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;flex-shrink:0;text-align:center">
+        <button onclick="removeWarmupItem(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
       </div>`;
       }).join('')}
     </div>
