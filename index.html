@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Kodus Training</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -324,8 +326,81 @@ input:checked + .tog-sl:before { transform: translateX(20px); }
 </div>
 
 <div id="app" style="width:100%;min-height:100vh"></div>
+<div id="fb-status" style="display:none;position:fixed;bottom:72px;left:50%;transform:translateX(-50%);background:rgba(99,77,179,0.92);color:#fff;font-size:12px;font-weight:600;padding:6px 16px;border-radius:20px;z-index:9999;letter-spacing:0.02em;pointer-events:none"></div>
 
 <script>
+// ============================================================
+// FIREBASE
+// ============================================================
+const _fbConfig = {
+  apiKey: "AIzaSyBfwNldlCUCsQa7F3mt-MoNq9qMEiAlbtg",
+  authDomain: "workout-tracker-47b2d.firebaseapp.com",
+  projectId: "workout-tracker-47b2d",
+  storageBucket: "workout-tracker-47b2d.firebasestorage.app",
+  messagingSenderId: "346319871188",
+  appId: "1:346319871188:web:4f8915abd6ee1fbc3fef41"
+};
+if (!firebase.apps.length) firebase.initializeApp(_fbConfig);
+const db = firebase.firestore();
+
+function showFbStatus(msg, isError) {
+  const el = document.getElementById('fb-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = isError ? 'rgba(220,38,38,0.92)' : 'rgba(99,77,179,0.92)';
+  el.style.display = 'block';
+  if (!isError) setTimeout(() => { el.style.display = 'none'; }, 2500);
+}
+
+function initFirestoreListeners() {
+  showFbStatus('⟳ Connecting…', false);
+
+  // Workouts collection — one doc per date
+  db.collection('workouts').onSnapshot(snap => {
+    const ids = new Set();
+    snap.forEach(doc => { S.savedWorkouts[doc.id] = doc.data(); ids.add(doc.id); });
+    // Remove locally any workouts deleted remotely
+    Object.keys(S.savedWorkouts).forEach(k => { if (!ids.has(k)) delete S.savedWorkouts[k]; });
+    localStorage.setItem('kodus_workouts', JSON.stringify(S.savedWorkouts));
+    if (S.view !== 'coach') render();
+  }, err => { showFbStatus('⚠ Sync error', true); console.error('workouts snap', err); });
+
+  // Weights collection — one doc per date
+  db.collection('weights').onSnapshot(snap => {
+    snap.forEach(doc => { localStorage.setItem('kodus_wt_' + doc.id, JSON.stringify(doc.data())); });
+    if (S.view !== 'coach') render();
+  }, err => { console.error('weights snap', err); });
+
+  // Videos settings doc
+  db.collection('settings').doc('videos').onSnapshot(doc => {
+    if (doc.exists) {
+      S.videoLibrary = doc.data() || {};
+      localStorage.setItem('kodus_videos', JSON.stringify(S.videoLibrary));
+      if (S.view === 'videos') render();
+    }
+  }, err => { console.error('videos snap', err); });
+
+  // Preferences settings doc
+  db.collection('settings').doc('preferences').onSnapshot(doc => {
+    if (doc.exists) {
+      const data = doc.data();
+      if (data.libraries) {
+        S.libraries = data.libraries;
+        S.libraries.warmup = [...LIBRARIES.warmup];
+        localStorage.setItem('kodus_libraries', JSON.stringify(S.libraries));
+      }
+      if (data.prs) localStorage.setItem('kodus_pr', JSON.stringify(data.prs));
+      if (data.done) localStorage.setItem('kodus_done', JSON.stringify(data.done));
+      if (data.completions) {
+        Object.keys(data.completions).forEach(date => {
+          localStorage.setItem('kodus_complete_' + date, JSON.stringify(data.completions[date]));
+        });
+      }
+      if (S.view === 'client') render();
+    }
+  }, err => { console.error('prefs snap', err); });
+}
+
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -563,8 +638,16 @@ function loadState() {
   try { S.videoLibrary = JSON.parse(localStorage.getItem('kodus_videos') || '{}'); } catch(e) { S.videoLibrary = {}; }
 }
 function saveWorkouts()    { localStorage.setItem('kodus_workouts',  JSON.stringify(S.savedWorkouts)); }
-function saveLibraries()  { localStorage.setItem('kodus_libraries', JSON.stringify(S.libraries)); }
-function saveVideoLibrary(){ localStorage.setItem('kodus_videos',    JSON.stringify(S.videoLibrary)); }
+function saveLibraries()  {
+  localStorage.setItem('kodus_libraries', JSON.stringify(S.libraries));
+  db.collection('settings').doc('preferences').set({ libraries: S.libraries }, { merge: true })
+    .catch(e => console.error('saveLibraries fb', e));
+}
+function saveVideoLibrary(){
+  localStorage.setItem('kodus_videos', JSON.stringify(S.videoLibrary));
+  db.collection('settings').doc('videos').set(S.videoLibrary)
+    .catch(e => { showFbStatus('⚠ Video save failed', true); console.error(e); });
+}
 
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function getTodayWorkout() { return S.savedWorkouts[todayKey()] || null; }
@@ -582,6 +665,8 @@ function markWorkoutDone(dateKey, val) {
     const d = JSON.parse(localStorage.getItem('kodus_done') || '{}');
     d[dateKey] = val;
     localStorage.setItem('kodus_done', JSON.stringify(d));
+    db.collection('settings').doc('preferences').set({ done: d }, { merge: true })
+      .catch(e => console.error('markWorkoutDone fb', e));
   } catch(e){}
 }
 
@@ -593,6 +678,8 @@ function logWeight(dateKey, exerciseName, weight) {
   const log = getWeightLog(dateKey);
   log[exerciseName] = weight;
   localStorage.setItem('kodus_wt_' + dateKey, JSON.stringify(log));
+  db.collection('weights').doc(dateKey).set(log)
+    .catch(e => console.error('logWeight fb', e));
   // Update PRs
   const prs = getPRs();
   const current = parseFloat(weight);
@@ -600,6 +687,8 @@ function logWeight(dateKey, exerciseName, weight) {
     if (!prs[exerciseName] || current > prs[exerciseName].weight) {
       prs[exerciseName] = { weight: current, date: dateKey };
       localStorage.setItem('kodus_pr', JSON.stringify(prs));
+      db.collection('settings').doc('preferences').set({ prs }, { merge: true })
+        .catch(e => console.error('logWeight prs fb', e));
     }
   }
 }
@@ -1715,6 +1804,8 @@ function saveWorkout() {
   const w = S.workout;
   S.savedWorkouts[w.date] = JSON.parse(JSON.stringify(w));
   saveWorkouts();
+  db.collection('workouts').doc(w.date).set(S.savedWorkouts[w.date])
+    .catch(e => { showFbStatus('⚠ Save failed: ' + e.message, true); console.error(e); });
   const btn = document.getElementById('save-btn');
   if (btn) {
     btn.innerHTML = '✓ Saved!';
@@ -1893,6 +1984,9 @@ function toggleDone(date,idx,val){
     const d=JSON.parse(localStorage.getItem(k)||'{}');
     d[idx]=val;
     localStorage.setItem(k,JSON.stringify(d));
+    db.collection('settings').doc('preferences').set(
+      { completions: { [date]: d } }, { merge: true }
+    ).catch(e => console.error('toggleDone fb', e));
     // Auto-mark workout done if all sections complete
     const w = S.savedWorkouts[date];
     if (w && val) {
@@ -1918,6 +2012,7 @@ function esc(s) { if(!s)return''; return String(s).replace(/&/g,'&amp;').replace
 // ============================================================
 loadState();
 render();
+initFirestoreListeners();
 </script>
 </body>
 </html>
