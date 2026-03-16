@@ -1540,15 +1540,15 @@ function renderSheetList(q) {
   if (!q && ctx.type !== 'warmup' && primary.length) {
     const catLabel = WORKOUT_TYPES.find(t=>t.lib===libKey)?.label || '';
     html += `<div class="sheet-section-label">${catLabel}</div>`;
-    primary.forEach(e => { html += `<div class="sheet-item" onclick="selectExercise(${JSON.stringify(e)})">${esc(e)}</div>`; });
+    primary.forEach(e => { html += `<div class="sheet-item" onclick="selectExercise(${esc(JSON.stringify(e))})">${esc(e)}</div>`; });
     const others = filtered.filter(e=>!primary.includes(e));
     if (others.length) {
       html += `<div class="sheet-section-label">All Exercises</div>`;
-      others.forEach(e => { html += `<div class="sheet-item" onclick="selectExercise(${JSON.stringify(e)})">${esc(e)}</div>`; });
+      others.forEach(e => { html += `<div class="sheet-item" onclick="selectExercise(${esc(JSON.stringify(e))})">${esc(e)}</div>`; });
     }
   } else {
     if (filtered.length === 0) html += `<div style="padding:24px;text-align:center;color:var(--text-faint)">No matches — try a different name or use Custom</div>`;
-    filtered.forEach(e => { html += `<div class="sheet-item" onclick="selectExercise(${JSON.stringify(e)})">${esc(e)}</div>`; });
+    filtered.forEach(e => { html += `<div class="sheet-item" onclick="selectExercise(${esc(JSON.stringify(e))})">${esc(e)}</div>`; });
     if (q) html += `<div class="sheet-item custom-item" style="margin-top:8px" onclick="pickCustom()">✏️ Use "${esc(q)}" as custom</div>`;
   }
 
