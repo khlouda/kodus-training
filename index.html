@@ -1187,10 +1187,10 @@ function builderMainHtml() {
           <button onclick="removeWarmupItem(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
         </div>
         <div style="position:relative">
-          <select onchange="w.warmupItems[${i}].name=this.value;render()"
+          <select onchange="S.workout.warmupItems[${i}].name=this.value;render()"
             style="width:100%;appearance:none;-webkit-appearance:none;padding:5px 28px 5px 10px;background:rgba(99,77,179,0.12);border:1px solid rgba(99,77,179,0.35);border-radius:8px;color:#c4bde8;font-size:12px;cursor:pointer;outline:none">
             <option value="" disabled>Change exercise…</option>
-            ${wuList.map(name=>`<option value="${esc(name)}" ${item.name===name?'selected':''}>${esc(name)}</option>`).join('')}
+            ${wuList.map(n=>`<option value="${esc(n)}" ${item.name===n?'selected':''}>${esc(n)}</option>`).join('')}
           </select>
           <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);color:#9988de;font-size:10px;pointer-events:none">▾</span>
         </div>
