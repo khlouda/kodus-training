@@ -1178,7 +1178,8 @@ function builderMainHtml() {
     <div style="display:flex;flex-direction:column;gap:7px">
       ${(w.warmupItems||[]).map((item,i)=>`
       <div class="warmup-item-row">
-        <div style="flex:1;font-size:14px;font-weight:500;color:white;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(item.name)}</div>
+        <input type="text" value="${esc(item.name)}" placeholder="Exercise name" oninput="w.warmupItems[${i}].name=this.value"
+          style="flex:1;min-width:0;padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:14px;font-weight:500;outline:none">
         <input type="text" value="${esc(item.setsReps)}" placeholder="Sets / Duration" oninput="w.warmupItems[${i}].setsReps=this.value"
           style="width:110px;padding:7px 10px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:13px;outline:none;flex-shrink:0">
         <button onclick="removeWarmupItem(${i})" style="width:28px;height:28px;border-radius:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#f87171;font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
@@ -1376,12 +1377,18 @@ function renderSection(sec, idx) {
     }).join('')}
   </div>`;
 
+  const SLOT_COLORS = ['#634DB3','#3B82F6','#10B981'];
   if (sec.sectionType) {
     sec.exercises.forEach((ex, ei) => {
       const slotLabel = sec.sectionType==='single' ? '' : `${sec.letter}${ei+1}`;
       const hasEx = !!ex.name;
-      h += `<div style="margin-bottom:12px">
-        ${slotLabel?`<div style="font-size:10px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#9988de;margin-bottom:6px">${slotLabel}</div>`:''}
+      const accentColor = SLOT_COLORS[ei % SLOT_COLORS.length];
+      const isMulti = sec.sectionType !== 'single';
+      h += `<div style="margin-bottom:14px;${isMulti ? `background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-left:3px solid ${accentColor};border-radius:12px;padding:14px 14px 14px 16px` : ''}">
+        ${slotLabel?`<div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:10px;background:${accentColor}22;border:1px solid ${accentColor}55;border-radius:7px;padding:3px 10px 3px 8px">
+          <div style="width:7px;height:7px;border-radius:50%;background:${accentColor}"></div>
+          <span style="font-size:11px;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:${accentColor}">${slotLabel}</span>
+        </div>`:''}
         <button class="ex-pick-btn ${hasEx?'filled':''}" onclick="openPicker('exercise',${idx},${ei})">
           ${hasEx ? `<span style="font-size:15px">🏋️</span><span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(ex.name)}</span><span style="font-size:12px;color:#9988de;flex-shrink:0">Change ›</span>`
                   : `<span style="font-size:18px;color:rgba(99,77,179,0.6)">+</span><span>Pick exercise…</span>`}
@@ -1406,8 +1413,7 @@ function renderSection(sec, idx) {
         ${ex._showNote?`<div style="margin-top:8px"><input type="text" class="input" placeholder="Coach note for this exercise…" value="${esc(ex.coachNote||'')}" oninput="S.workout.sections[${idx}].exercises[${ei}].coachNote=this.value" style="font-size:13px;padding:9px 12px"></div>`:''}
         ${ex._showVideo?`<div style="margin-top:8px"><input type="text" class="input" placeholder="YouTube URL…" value="${esc(ex.youtubeUrl||'')}" oninput="S.workout.sections[${idx}].exercises[${ei}].youtubeUrl=this.value" style="font-size:13px;padding:9px 12px"></div>`:''}
         `:''}
-      </div>
-      ${ei < sec.exercises.length-1 ? '<div style="height:1px;background:rgba(255,255,255,0.06);margin:4px 0 14px"></div>' : ''}`;
+      </div>`;
     });
 
     /* Rest */
