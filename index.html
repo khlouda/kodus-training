@@ -1420,12 +1420,16 @@ function renderSection(sec, idx) {
           <input type="text" class="input" placeholder="e.g. 4 × 8/6/6/6 or 3×8" value="${esc(ex.setsReps)}"
             oninput="S.workout.sections[${idx}].exercises[${ei}].setsReps=this.value" style="font-size:14px;padding:9px 12px">`:''}
         </div>
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="expand-link" onclick="toggleExField(${idx},${ei},'_showNote')" style="${ex._showNote?'color:#f87171;opacity:0.8':''}">${ex._showNote?'− Note':'+ Note'}</button>
-          <button class="expand-link" onclick="toggleExField(${idx},${ei},'_showVideo')" style="${ex._showVideo?'color:#f87171;opacity:0.8':''}">${ex._showVideo?'− Video':'+ Video'}</button>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+          <div>
+            <button class="expand-link" onclick="toggleExField(${idx},${ei},'_showNote')" style="${ex._showNote?'color:#f87171;opacity:0.8':''}">${ex._showNote?'− Note':'+ Note'}</button>
+            ${ex._showNote?`<div style="margin-top:6px"><input type="text" class="input" placeholder="Coach note for this exercise…" value="${esc(ex.coachNote||'')}" oninput="S.workout.sections[${idx}].exercises[${ei}].coachNote=this.value" style="font-size:13px;padding:9px 12px"></div>`:''}
+          </div>
+          <div>
+            <button class="expand-link" onclick="toggleExField(${idx},${ei},'_showVideo')" style="${ex._showVideo?'color:#f87171;opacity:0.8':''}">${ex._showVideo?'− Video':'+ Video'}</button>
+            ${ex._showVideo?`<div style="margin-top:6px"><input type="text" class="input" placeholder="YouTube URL…" value="${esc(ex.youtubeUrl||'')}" oninput="S.workout.sections[${idx}].exercises[${ei}].youtubeUrl=this.value" style="font-size:13px;padding:9px 12px"></div>`:''}
+          </div>
         </div>
-        ${ex._showNote?`<div style="margin-top:8px"><input type="text" class="input" placeholder="Coach note for this exercise…" value="${esc(ex.coachNote||'')}" oninput="S.workout.sections[${idx}].exercises[${ei}].coachNote=this.value" style="font-size:13px;padding:9px 12px"></div>`:''}
-        ${ex._showVideo?`<div style="margin-top:8px"><input type="text" class="input" placeholder="YouTube URL…" value="${esc(ex.youtubeUrl||'')}" oninput="S.workout.sections[${idx}].exercises[${ei}].youtubeUrl=this.value" style="font-size:13px;padding:9px 12px"></div>`:''}
         `:''}
       </div>`;
     });
