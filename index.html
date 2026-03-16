@@ -9,6 +9,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; }
 
 :root {
   --brand: #634DB3;
@@ -322,7 +323,7 @@ input:checked + .tog-sl:before { transform: translateX(20px); }
   <div id="sheet-list" class="sheet-list"></div>
 </div>
 
-<div id="app"></div>
+<div id="app" style="width:100%;min-height:100vh"></div>
 
 <script>
 // ============================================================
@@ -752,20 +753,18 @@ function renderClient() {
   if (desktop) {
     app.innerHTML = `<div style="min-height:100vh;display:flex;flex-direction:column">
       ${clientHeaderHtml(true)}
-      <div style="display:grid;grid-template-columns:360px 1fr;flex:1;min-height:0">
+      <div style="display:flex;flex:1;min-height:0;width:100%">
 
         <!-- Left sidebar -->
-        <div class="no-print" style="border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
+        <div class="no-print" style="width:360px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:62px;height:calc(100vh - 62px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
           ${renderWeekStrip()}
           ${timerHtml()}
           ${historyHtml(true)}
         </div>
 
         <!-- Main content -->
-        <div style="padding:36px 48px;overflow-y:auto">
-          <div style="max-width:680px">
-            ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
-          </div>
+        <div style="flex:1;min-width:0;padding:36px 48px;overflow-y:auto">
+          ${workout ? renderClientWorkout(workout) : renderNoWorkout()}
         </div>
 
       </div>
@@ -1012,17 +1011,15 @@ function renderCoach() {
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:320px 1fr;flex:1;min-height:0">
+      <div style="display:flex;flex:1;min-height:0;width:100%">
         <!-- Left sidebar -->
-        <div style="border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:66px;height:calc(100vh - 66px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
+        <div style="width:320px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 24px;position:sticky;top:66px;height:calc(100vh - 66px);overflow-y:auto;display:flex;flex-direction:column;gap:14px">
           ${S.coachTab==='builder' ? builderSidebarHtml() : ''}
         </div>
 
         <!-- Main content -->
-        <div style="padding:36px 48px;overflow-y:auto" id="coach-body">
-          <div style="max-width:720px">
-            ${S.coachTab==='builder' ? builderMainHtml() : renderLibrary()}
-          </div>
+        <div style="flex:1;min-width:0;padding:36px 48px;overflow-y:auto" id="coach-body">
+          ${S.coachTab==='builder' ? builderMainHtml() : renderLibrary()}
         </div>
       </div>
     </div>`;
