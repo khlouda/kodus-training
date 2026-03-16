@@ -1008,8 +1008,10 @@ function renderHistoryCalendar() {
 // ============================================================
 function renderCoach() {
   if (!S.workout) {
-    const existing = getTodayWorkout();
-    if (existing) {
+    const today = todayKey();
+    const existing = S.savedWorkouts[today];
+    // Only restore a saved workout if its stored date confirms it was saved for today
+    if (existing && existing.date === today) {
       S.workout = JSON.parse(JSON.stringify(existing));
     } else {
       S.workout = buildDefaultTemplate(getTodayScheduledType());
@@ -1588,8 +1590,10 @@ function pickCustom() {
 // ============================================================
 function setWorkoutType(type) {
   if (!S.workout || S.workout.type !== type) {
-    const existing = S.savedWorkouts[todayKey()];
-    if (existing && existing.type === type) {
+    const today = todayKey();
+    const existing = S.savedWorkouts[today];
+    // Only restore if the saved workout was saved for today AND matches the requested type
+    if (existing && existing.date === today && existing.type === type) {
       S.workout = JSON.parse(JSON.stringify(existing));
     } else {
       S.workout = buildDefaultTemplate(type);
