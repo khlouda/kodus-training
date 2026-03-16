@@ -687,8 +687,9 @@ window.addEventListener('resize', () => {
 });
 
 function render() {
-  if (S.view === 'coach') { renderCoach(); return; }
-  renderClient();
+  if (S.view === 'coach') { renderCoach(); } else { renderClient(); }
+  // Fix select values after innerHTML injection (browser doesn't apply selected attr reliably)
+  document.querySelectorAll('select[data-val]').forEach(sel => { sel.value = sel.dataset.val; });
 }
 
 // ============================================================
@@ -1181,7 +1182,7 @@ function builderMainHtml() {
         return `
       <div class="warmup-item-row">
         <div style="position:relative;flex:1;min-width:0">
-          <select onchange="S.workout.warmupItems[${i}].name=this.value;render()"
+          <select data-val="${esc(item.name)}" onchange="S.workout.warmupItems[${i}].name=this.value;render()"
             style="width:100%;appearance:none;-webkit-appearance:none;padding:7px 22px 7px 0;background:transparent;border:none;color:white;font-size:14px;font-weight:600;cursor:pointer;outline:none">
             ${wuList.map(n=>`<option value="${esc(n)}" ${item.name===n?'selected':''}>${esc(n)}</option>`).join('')}
           </select>
