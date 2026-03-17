@@ -8,7 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,500;0,600;0,700;0,800;1,600&family=Barlow:wght@300;400;500;600;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { width: 100%; }
@@ -26,14 +26,18 @@ html, body { width: 100%; }
   --text-faint: rgba(255,255,255,0.25);
   --bg: #0f0e17;
   --bg-elevated: #17162a;
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
+  --font-body: 'Barlow', system-ui, sans-serif;
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
 body::after {
@@ -45,65 +49,70 @@ body::after {
   z-index: 9999;
 }
 
-.t-display { font-family: Georgia, serif; letter-spacing: -0.025em; }
-.t-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.t-display { font-family: var(--font-display); letter-spacing: -0.025em; }
+.t-label { font-size: 11px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-dim); font-family: var(--font-body); }
 
 .btn-primary {
   background: linear-gradient(135deg, #7761d0 0%, #634DB3 60%, #5241a0 100%);
-  box-shadow: 0 4px 20px rgba(99,77,179,0.45), inset 0 1px 0 rgba(255,255,255,0.12);
+  box-shadow: 0 4px 24px rgba(99,77,179,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
   color: white; border: none; cursor: pointer;
   transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+  font-family: var(--font-body);
 }
-.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(99,77,179,0.6), inset 0 1px 0 rgba(255,255,255,0.12); }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 32px rgba(99,77,179,0.65), inset 0 1px 0 rgba(255,255,255,0.12); }
 .btn-primary:active { transform: scale(0.97); }
 
 .btn-ghost {
   background: var(--surface); border: 1px solid var(--border);
   color: #c4bde8; cursor: pointer;
-  transition: background 0.15s, transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  transition: background 0.15s, transform 0.15s cubic-bezier(0.34,1.56,0.64,1), border-color 0.15s;
+  font-family: var(--font-body);
 }
-.btn-ghost:hover { background: var(--surface-hover); }
+.btn-ghost:hover { background: var(--surface-hover); border-color: rgba(99,77,179,0.35); }
 .btn-ghost:active { transform: scale(0.97); }
 
 .btn-green {
   background: linear-gradient(135deg, #22c55e, #16a34a);
-  box-shadow: 0 4px 16px rgba(34,197,94,0.35);
+  box-shadow: 0 4px 20px rgba(34,197,94,0.4);
   color: white; border: none; cursor: pointer;
-  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1);
+  transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.15s;
+  font-family: var(--font-body);
 }
-.btn-green:hover { transform: translateY(-1px); }
+.btn-green:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(34,197,94,0.5); }
 .btn-green:active { transform: scale(0.97); }
 
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
-.card-elevated { background: rgba(255,255,255,0.065); border: 1px solid var(--border-strong); border-radius: 16px; padding: 18px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+.card-elevated { background: rgba(255,255,255,0.065); border: 1px solid var(--border-strong); border-radius: 18px; padding: 18px; }
 
 .input {
   background: rgba(255,255,255,0.055);
   border: 1.5px solid var(--border);
   color: var(--text);
   border-radius: 12px;
-  padding: 11px 14px;
+  padding: 12px 14px;
   width: 100%;
-  font-size: 15px;
-  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-family: var(--font-body);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
 }
-.input:focus { border-color: var(--brand-light); box-shadow: 0 0 0 3px rgba(99,77,179,0.18); }
+.input:focus { border-color: var(--brand-light); box-shadow: 0 0 0 3px rgba(99,77,179,0.2); }
 .input::placeholder { color: var(--text-faint); }
-textarea.input { resize: none; line-height: 1.55; }
+textarea.input { resize: none; line-height: 1.6; }
 
 .chips-row { display: flex; gap: 7px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .chips-row::-webkit-scrollbar { display: none; }
 .chip {
   display: inline-flex; align-items: center; white-space: nowrap;
-  padding: 7px 14px; border-radius: 20px;
+  padding: 9px 16px; border-radius: 22px;
   font-size: 13px; font-weight: 600;
   border: 1.5px solid var(--border);
   background: var(--surface);
   color: #c4bde8; cursor: pointer;
   transition: all 0.15s cubic-bezier(0.34,1.56,0.64,1);
-  flex-shrink: 0;
+  flex-shrink: 0; min-height: 44px;
+  font-family: var(--font-body);
 }
 .chip:hover { border-color: rgba(99,77,179,0.5); background: var(--brand-dim); }
 .chip:active { transform: scale(0.94); }
@@ -119,7 +128,7 @@ textarea.input { resize: none; line-height: 1.55; }
   border-radius: 16px; padding: 18px 10px;
   text-align: center; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  color: #c4bde8;
+  color: #c4bde8; min-height: 84px;
 }
 .type-btn:hover { border-color: rgba(99,77,179,0.4); background: rgba(99,77,179,0.1); }
 .type-btn.active {
@@ -129,20 +138,20 @@ textarea.input { resize: none; line-height: 1.55; }
   box-shadow: 0 0 0 3px rgba(99,77,179,0.15), 0 4px 20px rgba(99,77,179,0.25);
 }
 
-.section-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; overflow: hidden; }
+.section-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; overflow: hidden; }
 .section-card-head {
-  background: linear-gradient(135deg, rgba(99,77,179,0.2), rgba(82,65,160,0.12));
+  background: linear-gradient(135deg, rgba(99,77,179,0.22), rgba(82,65,160,0.12));
   border-bottom: 1px solid rgba(99,77,179,0.18);
   padding: 14px 16px;
   display: flex; align-items: center; justify-content: space-between;
 }
 
 .ex-pick-btn {
-  width: 100%; padding: 14px 16px; border-radius: 13px;
+  width: 100%; padding: 16px; border-radius: 14px;
   background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(255,255,255,0.15);
-  color: var(--text-dim); font-size: 14px; font-weight: 500;
+  color: var(--text-dim); font-size: 15px; font-weight: 500;
   display: flex; align-items: center; gap: 10px; cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s; min-height: 56px; font-family: var(--font-body);
 }
 .ex-pick-btn.filled {
   background: rgba(99,77,179,0.12); border-style: solid;
@@ -155,79 +164,101 @@ textarea.input { resize: none; line-height: 1.55; }
   border: 2px solid var(--border); background: var(--surface);
   text-align: center; cursor: pointer;
   transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-  min-height: 72px;
+  min-height: 80px;
 }
 .stype-btn:hover { border-color: rgba(99,77,179,0.45); background: rgba(99,77,179,0.1); }
 .stype-btn.active { background: rgba(99,77,179,0.22); border-color: var(--brand-light); box-shadow: 0 0 0 3px rgba(99,77,179,0.15); }
 
 .sheet-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
   z-index: 300; opacity: 0; pointer-events: none;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   transition: opacity 0.28s;
 }
 .sheet-overlay.open { opacity: 1; pointer-events: all; }
 
 .sheet {
   position: fixed; bottom: 0; left: 0; right: 0;
-  background: #1c1a2e; border-radius: 24px 24px 0 0;
+  background: #1c1a2e; border-radius: 28px 28px 0 0;
   border-top: 1px solid rgba(255,255,255,0.1);
   z-index: 301;
   transform: translateY(100%);
   transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
-  max-height: 82vh; display: flex; flex-direction: column;
-  box-shadow: 0 -12px 60px rgba(0,0,0,0.6);
+  max-height: 85vh; display: flex; flex-direction: column;
+  box-shadow: 0 -16px 80px rgba(0,0,0,0.7);
 }
 .sheet.open { transform: translateY(0); }
-.sheet-handle { width: 40px; height: 4px; background: rgba(255,255,255,0.18); border-radius: 2px; margin: 14px auto 0; flex-shrink: 0; }
-.sheet-search-wrap { padding: 14px 16px 10px; flex-shrink: 0; }
-.sheet-list { overflow-y: auto; flex: 1; padding: 0 16px 40px; }
+.sheet-handle { width: 44px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 3px; margin: 16px auto 0; flex-shrink: 0; }
+.sheet-search-wrap { padding: 14px 18px 10px; flex-shrink: 0; }
+.sheet-list { overflow-y: auto; flex: 1; padding: 0 16px 48px; }
 .sheet-item {
-  padding: 13px 14px; border-radius: 12px; cursor: pointer;
-  font-size: 15px; color: #c4bde8; display: flex; align-items: center; gap: 10px;
+  padding: 15px 14px; border-radius: 12px; cursor: pointer;
+  font-size: 16px; color: #c4bde8; display: flex; align-items: center; gap: 10px;
   transition: background 0.12s;
   border-bottom: 1px solid rgba(255,255,255,0.04);
+  min-height: 52px; font-family: var(--font-body);
 }
 .sheet-item:hover, .sheet-item:active { background: rgba(99,77,179,0.2); color: white; }
-.sheet-item.custom-item { color: #9988de; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px; }
-.sheet-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-faint); padding: 12px 14px 6px; }
+.sheet-item.custom-item { color: #9988de; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px; }
+.sheet-section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); padding: 14px 14px 6px; }
 
-.tog { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+.tog { position: relative; width: 50px; height: 28px; flex-shrink: 0; }
 .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
-.tog-sl { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.1); border-radius: 26px; border: 1px solid var(--border); transition: 0.25s; }
-.tog-sl:before { content: ''; position: absolute; height: 20px; width: 20px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.25s; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+.tog-sl { position: absolute; cursor: pointer; inset: 0; background: rgba(255,255,255,0.1); border-radius: 28px; border: 1px solid var(--border); transition: 0.25s; }
+.tog-sl:before { content: ''; position: absolute; height: 22px; width: 22px; left: 2px; bottom: 2px; background: white; border-radius: 50%; transition: 0.25s; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
 input:checked + .tog-sl { background: var(--brand); border-color: var(--brand); }
-input:checked + .tog-sl:before { transform: translateX(20px); }
+input:checked + .tog-sl:before { transform: translateX(22px); }
 
-.cv-card { background: rgba(255,255,255,0.048); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; box-shadow: 0 6px 28px rgba(0,0,0,0.28); }
-.cv-head { background: linear-gradient(135deg, rgba(99,77,179,0.38), rgba(82,65,160,0.22)); border-bottom: 1px solid rgba(99,77,179,0.22); padding: 15px 18px; }
-.reps-badge { display: inline-flex; align-items: center; background: rgba(99,77,179,0.22); border: 1px solid rgba(99,77,179,0.38); border-radius: 9px; padding: 5px 12px; font-weight: 700; color: #c4bde8; font-size: 15px; }
-.complete-chk { width: 24px; height: 24px; border-radius: 7px; border: 2px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; appearance: none; -webkit-appearance: none; flex-shrink: 0; transition: all 0.2s; }
-.complete-chk:checked { background: var(--brand); border-color: var(--brand); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='1,5 4,9 11,1' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; background-size: 12px; }
+.cv-card { background: rgba(255,255,255,0.048); border: 1px solid rgba(255,255,255,0.08); border-radius: 22px; overflow: hidden; box-shadow: 0 8px 36px rgba(0,0,0,0.3), 0 0 0 1px rgba(99,77,179,0.04); }
+.cv-head { background: linear-gradient(135deg, rgba(99,77,179,0.38), rgba(82,65,160,0.22)); border-bottom: 1px solid rgba(99,77,179,0.22); padding: 16px 20px; }
+.reps-badge { display: inline-flex; align-items: center; background: rgba(99,77,179,0.25); border: 1.5px solid rgba(99,77,179,0.45); border-radius: 10px; padding: 6px 14px; font-weight: 800; color: #d4caff; font-size: 18px; font-family: var(--font-display); letter-spacing: 0.03em; }
+.complete-chk { width: 28px; height: 28px; border-radius: 8px; border: 2px solid rgba(255,255,255,0.2); background: transparent; cursor: pointer; appearance: none; -webkit-appearance: none; flex-shrink: 0; transition: all 0.2s; }
+.complete-chk:checked { background: var(--brand); border-color: var(--brand); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 12 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='1,5 4,9 11,1' stroke='white' stroke-width='2.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; background-size: 13px; }
 
-.nav-tab { padding: 9px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--text-dim); border: 1px solid transparent; }
-.nav-tab.active { background: rgba(99,77,179,0.22); color: white; border-color: rgba(99,77,179,0.35); }
+.nav-tab { padding: 10px 18px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; color: var(--text-dim); border: 1.5px solid transparent; font-family: var(--font-body); min-height: 44px; display: inline-flex; align-items: center; }
+.nav-tab.active { background: rgba(99,77,179,0.22); color: white; border-color: rgba(99,77,179,0.4); }
 .nav-tab:hover:not(.active) { color: var(--text); background: var(--surface-hover); }
 
-.streak-dot { width: 33px; height: 33px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+.streak-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
 .sd-done { background: var(--brand); color: white; box-shadow: 0 0 14px rgba(99,77,179,0.5); }
 .sd-today { border: 2px solid var(--brand); color: #9988de; }
 .sd-empty { background: rgba(255,255,255,0.055); color: var(--text-faint); }
 .sd-missed { background: rgba(239,68,68,0.18); border: 2px solid rgba(239,68,68,0.45); color: #f87171; }
 .sd-rest { background: rgba(255,255,255,0.03); color: var(--text-faint); border: 1px solid var(--border); }
 
-.timer-num { font-family: Georgia, serif; font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
-.expand-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; color: rgba(99,77,179,0.9); cursor: pointer; padding: 4px 0; border: none; background: none; }
+.timer-num { font-family: var(--font-display); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+
+/* Big rest timer block */
+.timer-block { margin-top: 20px; background: linear-gradient(135deg, rgba(99,77,179,0.12), rgba(82,65,160,0.07)); border: 1.5px solid rgba(99,77,179,0.25); border-radius: 20px; overflow: hidden; }
+.timer-inner { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; gap: 16px; }
+.timer-num-big { font-family: var(--font-display); font-size: 60px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; color: white; }
+.timer-start-btn { width: 88px; height: 88px; border-radius: 22px; background: linear-gradient(135deg, #7761d0, #634DB3); box-shadow: 0 6px 24px rgba(99,77,179,0.5); border: none; color: white; font-size: 14px; font-weight: 800; font-family: var(--font-body); cursor: pointer; flex-shrink: 0; transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.12s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.timer-start-btn:active { transform: scale(0.91); box-shadow: 0 2px 12px rgba(99,77,179,0.4); }
+.timer-start-btn.done-state { background: rgba(34,197,94,0.15); border: 2px solid rgba(34,197,94,0.4); box-shadow: 0 4px 16px rgba(34,197,94,0.2); color: #4ade80; }
+
+/* Exercise name — big in client view */
+.ex-name-big { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: white; line-height: 1.2; letter-spacing: -0.01em; margin-bottom: 10px; }
+@media (min-width: 1024px) {
+  .ex-name-big { font-size: 22px; }
+  .timer-num-big { font-size: 46px; }
+  .timer-start-btn { width: 76px; height: 76px; }
+}
+
+/* Section letter — big in client cards */
+.sec-letter-client { font-family: var(--font-display); font-size: 56px; font-weight: 800; color: rgba(119,97,208,0.65); line-height: 1; letter-spacing: -0.04em; }
+@media (min-width: 1024px) { .sec-letter-client { font-size: 42px; } }
+
+.expand-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: rgba(99,77,179,0.9); cursor: pointer; padding: 6px 0; border: none; background: none; min-height: 44px; }
 .expand-link:hover { color: var(--brand-light); }
 
 .add-section-btn {
-  width: 100%; padding: 15px; border-radius: 15px;
+  width: 100%; padding: 18px; border-radius: 16px;
   border: 2px dashed rgba(99,77,179,0.35); background: rgba(99,77,179,0.06);
-  color: #9988de; font-size: 15px; font-weight: 600; cursor: pointer;
+  color: #9988de; font-size: 15px; font-weight: 700; cursor: pointer;
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.2s; min-height: 60px; font-family: var(--font-body);
 }
-.add-section-btn:hover { background: rgba(99,77,179,0.12); border-color: rgba(99,77,179,0.55); color: white; }
+.add-section-btn:hover { background: rgba(99,77,179,0.13); border-color: rgba(99,77,179,0.55); color: white; }
 .add-section-btn:active { transform: scale(0.98); }
 
 .warmup-item-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; }
@@ -237,9 +268,10 @@ input:checked + .tog-sl:before { transform: translateX(20px); }
   background: rgba(99,77,179,0.1);
   border: 1.5px solid rgba(99,77,179,0.3);
   color: var(--text); border-radius: 10px;
-  padding: 8px 12px; font-size: 14px; font-weight: 600;
-  width: 100px; outline: none; font-family: 'Inter', sans-serif;
+  padding: 10px 12px; font-size: 16px; font-weight: 700;
+  width: 120px; outline: none; font-family: var(--font-body);
   transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
 }
 .weight-input:focus { border-color: var(--brand-light); box-shadow: 0 0 0 3px rgba(99,77,179,0.18); }
 .weight-input::placeholder { color: var(--text-faint); font-weight: 400; }
@@ -262,10 +294,10 @@ input:checked + .tog-sl:before { transform: translateX(20px); }
   flex: 1; min-width: 0;
 }
 .week-day-dot {
-  width: 36px; height: 36px; border-radius: 10px;
+  width: 40px; height: 40px; border-radius: 12px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  font-size: 9px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase;
-  transition: all 0.2s;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  transition: all 0.2s; font-family: var(--font-body);
 }
 .wdd-rest { background: rgba(255,255,255,0.03); color: var(--text-faint); border: 1px solid var(--border); }
 .wdd-done { background: var(--brand); color: white; box-shadow: 0 0 12px rgba(99,77,179,0.5); }
@@ -279,10 +311,11 @@ input:checked + .tog-sl:before { transform: translateX(20px); }
 
 /* Today banner */
 .today-banner {
-  background: linear-gradient(135deg, rgba(99,77,179,0.28) 0%, rgba(82,65,160,0.18) 100%);
-  border: 1.5px solid rgba(99,77,179,0.4);
-  border-radius: 18px; padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(99,77,179,0.3) 0%, rgba(82,65,160,0.18) 100%);
+  border: 1.5px solid rgba(99,77,179,0.42);
+  border-radius: 20px; padding: 18px 20px;
   display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 24px rgba(99,77,179,0.18);
 }
 
 /* Calendar */
@@ -759,8 +792,8 @@ function renderWeekStrip() {
         else if (d.isToday) cls = 'wdd-today';
 
         return `<div class="week-strip-day">
-          <div class="week-day-dot ${cls}" style="${d.isToday?'box-shadow:0 0 0 2px #634DB3;':''}">${content}</div>
-          <span style="font-size:9px;color:${d.isToday?'#9988de':'var(--text-faint)'};font-weight:${d.isToday?'700':'500'}">${d.label}</span>
+          <div class="week-day-dot ${cls}" style="${d.isToday?'box-shadow:0 0 0 2px #7761d0;':''}">${content}</div>
+          <span style="font-size:10px;color:${d.isToday?'#9988de':'var(--text-faint)'};font-weight:${d.isToday?'800':'600'};font-family:var(--font-body)">${d.label}</span>
         </div>`;
       }).join('')}
     </div>
@@ -807,16 +840,23 @@ function sectionTimerHtml(idx, restStr) {
   const timeStr = `${m}:${s.toString().padStart(2,'0')}`;
   const timeColor = (isActive && remaining < 10 && remaining > 0) ? '#f87171' : 'white';
   const btnText = isDone ? 'Done ✓' : (isRunning ? 'Pause' : (isActive && remaining < total ? 'Resume' : 'Start'));
-  const btnBg = isDone ? 'rgba(34,197,94,0.15)' : 'rgba(99,77,179,0.5)';
+  const btnBgGrad = isDone ? 'none' : 'linear-gradient(135deg,#7761d0,#634DB3)';
+  const btnBgColor = isDone ? 'rgba(34,197,94,0.15)' : 'transparent';
   const btnColor = isDone ? '#4ade80' : 'white';
-  const statusText = isDone ? 'Rest done! ✓' : (isRunning ? 'resting…' : 'rest');
+  const btnBorder = isDone ? '2px solid rgba(34,197,94,0.4)' : 'none';
+  const btnShadow = isDone ? '0 4px 16px rgba(34,197,94,0.2)' : '0 6px 24px rgba(99,77,179,0.5)';
+  const statusText = isDone ? 'Rest done! ✓' : (isRunning ? 'resting…' : (restStr && restStr !== '—' ? `rest · ${restStr}` : 'rest timer'));
   const statusColor = isDone ? '#4ade80' : '#9988de';
-  return `<div id="sec-timer-${idx}" style="margin-top:14px;padding:10px 14px;background:rgba(99,77,179,0.07);border:1px solid rgba(99,77,179,0.18);border-radius:12px;display:flex;align-items:center;gap:12px">
-    <span style="font-size:15px;flex-shrink:0">⏱</span>
-    <span id="sec-timer-num-${idx}" style="font-size:17px;font-weight:700;color:${timeColor};font-variant-numeric:tabular-nums;min-width:38px">${timeStr}</span>
-    <span id="sec-timer-status-${idx}" style="font-size:12px;color:${statusColor};flex:1">${statusText}</span>
-    <button id="sec-timer-btn-${idx}" onclick="startSectionTimer(${idx})"
-      style="padding:8px 20px;background:${btnBg};border:none;border-radius:9px;color:${btnColor};font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;min-width:76px;-webkit-tap-highlight-color:transparent;touch-action:manipulation">${btnText}</button>
+  return `<div id="sec-timer-${idx}" class="timer-block">
+    <div class="timer-inner">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9988de;margin-bottom:4px;font-family:var(--font-body)">Rest Timer</div>
+        <div id="sec-timer-num-${idx}" class="timer-num-big" style="color:${timeColor}">${timeStr}</div>
+        <div id="sec-timer-status-${idx}" style="font-size:13px;color:${statusColor};margin-top:4px;font-family:var(--font-body)">${statusText}</div>
+      </div>
+      <button id="sec-timer-btn-${idx}" onclick="startSectionTimer(${idx})" class="timer-start-btn ${isDone?'done-state':''}"
+        style="background:${btnBgGrad};background-color:${btnBgColor};border:${btnBorder};box-shadow:${btnShadow};color:${btnColor}">${btnText}</button>
+    </div>
   </div>`;
 }
 
@@ -833,20 +873,20 @@ function historyHtml(alwaysOpen) {
 }
 
 function clientHeaderHtml(desktop) {
-  return `<div class="no-print" style="background:rgba(15,14,23,0.95);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:${desktop?'16px 40px':'14px 18px'};display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+  return `<div class="no-print" style="background:rgba(15,14,23,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:${desktop?'14px 40px':'12px 18px'};display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
     <div style="display:flex;align-items:center;gap:${desktop?'20px':'0'}">
       <div>
-        <div class="t-display" style="font-size:${desktop?'22px':'19px'};font-weight:700;color:white;letter-spacing:-0.025em">Kodus Training</div>
-        <div style="font-size:${desktop?'12px':'11px'};color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
+        <div style="font-family:var(--font-display);font-size:${desktop?'24px':'21px'};font-weight:800;color:white;letter-spacing:-0.02em;line-height:1.1">Kodus Training</div>
+        <div style="font-size:${desktop?'12px':'11px'};color:var(--text-dim);margin-top:1px;font-family:var(--font-body)">${fmtDate(new Date())}</div>
       </div>
     </div>
     <div style="display:flex;gap:${desktop?'10px':'8px'};align-items:center">
       <button onclick="window.print()" class="btn-ghost no-print" style="padding:${desktop?'9px 18px':'8px 12px'};border-radius:10px;font-size:${desktop?'13px':'12px'};font-weight:600">Print</button>
       ${desktop
-        ? `<button onclick="S.view='videos';render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🎬 Videos</button>
-           <button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🏋️ Coach Portal</button>`
-        : `<button onclick="S.view='videos';render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Videos">🎬</button>
-           <button onclick="S.view='coach';S.workout=null;render()" class="no-print" style="width:36px;height:36px;border-radius:10px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer" title="Coach Portal">🏋️</button>`
+        ? `<button onclick="S.view='videos';render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Videos</button>
+           <button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:9px 18px;border-radius:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Coach Portal</button>`
+        : `<button onclick="S.view='videos';render()" class="no-print" style="width:40px;height:40px;border-radius:12px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer" title="Videos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9988de" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
+           <button onclick="S.view='coach';S.workout=null;render()" class="no-print" style="width:40px;height:40px;border-radius:12px;background:rgba(99,77,179,0.18);border:1px solid rgba(99,77,179,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer" title="Coach Portal"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9988de" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></button>`
       }
     </div>
   </div>`;
@@ -872,8 +912,9 @@ function renderClient() {
             <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
           </div>
           <div style="display:flex;gap:10px;align-items:center">
-            <button onclick="window.print()" class="btn-ghost no-print" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">Print</button>
-            <button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px">🏋️ Coach Portal</button>
+            <button onclick="window.print()" class="btn-ghost no-print" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600">Print</button>
+            <button onclick="S.view='videos';render()" class="btn-ghost no-print" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Videos</button>
+            <button onclick="S.view='coach';S.workout=null;render()" class="btn-ghost no-print" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Coach Portal</button>
           </div>
         </div>
       </div>
@@ -939,8 +980,8 @@ function renderClientWorkout(w) {
     <div style="display:flex;align-items:center;gap:14px">
       <div style="font-size:34px">${ti.icon}</div>
       <div>
-        <div class="t-label" style="margin-bottom:2px">Today's Session</div>
-        <div class="t-display" style="font-size:22px;font-weight:700;color:white">${ti.label}</div>
+        <div class="t-label" style="margin-bottom:4px">Today's Session</div>
+        <div style="font-family:var(--font-display);font-size:28px;font-weight:800;color:white;letter-spacing:-0.02em;line-height:1.1">${ti.label}</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
@@ -959,7 +1000,7 @@ function renderClientWorkout(w) {
   // Warmup
   if (w.warmupItems?.length || w.warmupNote) {
     h += `<div class="cv-card" style="margin-bottom:14px">
-      <div class="cv-head" style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">🔥</span><span style="font-weight:700;font-size:16px;color:white">Warm Up</span></div>
+      <div class="cv-head" style="display:flex;align-items:center;gap:12px"><span style="font-size:20px">🔥</span><span style="font-weight:800;font-size:20px;color:white;font-family:var(--font-display);letter-spacing:-0.01em">Warm Up</span></div>
       <div style="padding:14px">
         ${w.warmupNote ? `<p style="color:#c4bde8;font-size:13px;font-style:italic;line-height:1.6;margin-bottom:${w.warmupItems?.length?'12px':'0'};background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px">${esc(w.warmupNote)}</p>` : ''}
         ${(w.warmupItems||[]).map(x=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.05)">
@@ -976,11 +1017,11 @@ function renderClientWorkout(w) {
     const lbl = sec.sectionType==='single' ? sec.letter : (sec.exercises||[]).map((_,i)=>sec.letter+(i+1)).join('·');
     h += `<div class="cv-card fade-up" style="margin-bottom:14px;${done?'opacity:0.6':''}">
       <div class="cv-head" style="display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:12px">
-          <span class="t-display" style="font-size:26px;font-weight:700;color:#9988de">${lbl}</span>
+        <div style="display:flex;align-items:center;gap:14px">
+          <span class="sec-letter-client">${lbl}</span>
           <div>
-            <div class="t-label">${sec.sectionType==='superset'?'Superset':sec.sectionType==='triset'?'Triset':'Exercise'}</div>
-            ${sec.rest && sec.rest!=='—' ? `<div style="font-size:12px;color:#9988de;margin-top:1px">⏱ Rest ${esc(sec.rest)}</div>` : ''}
+            <div style="display:inline-flex;align-items:center;padding:3px 10px;background:rgba(99,77,179,0.25);border:1px solid rgba(99,77,179,0.4);border-radius:8px;font-size:11px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#c4bde8;font-family:var(--font-body);margin-bottom:3px">${sec.sectionType==='superset'?'Superset':sec.sectionType==='triset'?'Triset':'Exercise'}</div>
+            ${sec.rest && sec.rest!=='—' ? `<div style="font-size:12px;color:#9988de;font-family:var(--font-body);font-weight:600">Rest ${esc(sec.rest)}</div>` : ''}
           </div>
         </div>
         <input type="checkbox" class="complete-chk" ${done?'checked':''} onchange="toggleDone('${dateKey}',${idx},this.checked)">
@@ -992,9 +1033,9 @@ function renderClientWorkout(w) {
           const prData = prs[wKey];
           const showPR = savedWeight && isPR(wKey, savedWeight);
           return `<div style="${ei>0?'border-top:1px solid rgba(255,255,255,0.06);padding-top:13px;margin-top:13px':''}">
-            ${sec.sectionType!=='single'?`<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9988de;margin-bottom:4px">${sec.letter}${ei+1}</div>`:''}
-            <div style="font-size:18px;font-weight:700;color:white;line-height:1.3;margin-bottom:7px">${esc(ex.name)||'—'}</div>
-            ${ex.setsReps?`<div class="reps-badge" style="margin-bottom:8px">${esc(ex.setsReps)}</div>`:''}
+            ${sec.sectionType!=='single'?`<div style="font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9988de;margin-bottom:6px;font-family:var(--font-body)">${sec.letter}${ei+1}</div>`:''}
+            <div class="ex-name-big">${esc(ex.name)||'—'}</div>
+            ${ex.setsReps?`<div class="reps-badge" style="margin-bottom:10px">${esc(ex.setsReps)}</div>`:''}
             ${ex.coachNote||ex._note?`<div style="margin-top:6px;padding:8px 10px;background:rgba(99,77,179,0.1);border-radius:8px;border-left:3px solid #634DB3;font-size:13px;color:#c4bde8;font-style:italic">${esc(ex.coachNote||ex._note)}</div>`:''}
             <!-- Weight tracker -->
             <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
@@ -1019,10 +1060,10 @@ function renderClientWorkout(w) {
   // Finisher
   if (w.finisherEnabled && (w.finisherExercises || w.finisherItems?.length)) {
     h += `<div class="cv-card" style="margin-bottom:14px">
-      <div class="cv-head" style="display:flex;align-items:center;gap:10px">
-        <span style="font-size:18px">⚡</span>
+      <div class="cv-head" style="display:flex;align-items:center;gap:12px">
+        <span style="font-size:20px">⚡</span>
         <div>
-          <div style="font-weight:700;font-size:16px;color:white">Finisher</div>
+          <div style="font-weight:800;font-size:20px;color:white;font-family:var(--font-display);letter-spacing:-0.01em">Finisher</div>
           ${w.finisherRounds?`<div style="font-size:12px;color:#9988de">${esc(w.finisherRounds)}</div>`:''}
         </div>
       </div>
@@ -1141,11 +1182,11 @@ function renderCoach() {
             <div style="font-size:11px;color:var(--text-dim);margin-top:1px">Mostafa Kodus · ${fmtDate(new Date())}</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
-            <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
+            <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">Builder</button>
+            <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">Library</button>
             <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
-            <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">🎬 Videos</button>
-            <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 16px;border-radius:10px;font-size:13px;font-weight:600">← Client View</button>
+            <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Videos</button>
+            <button onclick="S.view='client';render()" class="btn-ghost" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Client View</button>
           </div>
         </div>
       </div>
@@ -1175,13 +1216,13 @@ function renderCoach() {
           <div style="font-size:11px;color:var(--text-dim)">Mostafa Kodus</div>
         </div>
         <div style="display:flex;gap:6px">
-          <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:7px 10px;border-radius:10px;font-size:12px;font-weight:600">🎬</button>
-          <button onclick="S.view='client';render()" class="btn-ghost" style="padding:8px 12px;border-radius:10px;font-size:13px;font-weight:600">← Client</button>
+          <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:9px 12px;border-radius:12px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></button>
+          <button onclick="S.view='client';render()" class="btn-ghost" style="padding:9px 14px;border-radius:12px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Client</button>
         </div>
       </div>
       <div style="padding:10px 14px 12px;display:flex;gap:7px;border-bottom:1px solid rgba(255,255,255,0.05)">
-        <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">📋 Builder</button>
-        <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">📚 Library</button>
+        <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">Builder</button>
+        <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">Library</button>
       </div>
       <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px" id="coach-body">
         ${S.coachTab==='builder' ? renderBuilder() : renderLibrary()}
@@ -1208,8 +1249,8 @@ function builderSidebarHtml() {
     <div style="display:flex;align-items:center;gap:12px">
       <div style="font-size:28px">${ti.icon}</div>
       <div>
-        <div class="t-label" style="margin-bottom:2px">Today</div>
-        <div style="font-size:17px;font-weight:800;color:white">${ti.label}</div>
+        <div class="t-label" style="margin-bottom:3px">Today</div>
+        <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;letter-spacing:-0.02em">${ti.label}</div>
       </div>
     </div>
     <button onclick="S.showTypeChooser=!S.showTypeChooser;render()" class="btn-ghost" style="padding:6px 12px;border-radius:9px;font-size:12px;font-weight:700">Change</button>
@@ -1383,8 +1424,8 @@ function renderBuilder() {
     <div style="display:flex;align-items:center;gap:14px">
       <div style="font-size:30px">${ti.icon}</div>
       <div>
-        <div class="t-label" style="margin-bottom:2px">Today's Workout</div>
-        <div style="font-size:18px;font-weight:800;color:white">${ti.label}</div>
+        <div class="t-label" style="margin-bottom:3px">Today's Workout</div>
+        <div style="font-family:var(--font-display);font-size:24px;font-weight:800;color:white;letter-spacing:-0.02em">${ti.label}</div>
         <div style="font-size:11px;color:var(--text-dim);margin-top:1px">${fmtDate(new Date())}</div>
       </div>
     </div>
@@ -1474,7 +1515,7 @@ function rerenderLastSession() {
 }
 
 function stepBadge(n) {
-  return `<span style="min-width:24px;height:24px;padding:0 7px;background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">${n}</span>`;
+  return `<span style="min-width:26px;height:26px;padding:0 8px;background:rgba(99,77,179,0.3);border:1px solid rgba(99,77,179,0.4);color:#9988de;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;font-family:var(--font-body)">${n}</span>`;
 }
 
 function coachMarkDone() {
@@ -1490,9 +1531,11 @@ function renderSection(sec, idx) {
   const isFirst = idx === 0, isLast = idx === w.sections.length - 1;
   let h = `<div class="section-card fade-up" id="sec-${idx}" style="margin-bottom:10px">
     <div class="section-card-head">
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="t-display" style="font-size:22px;font-weight:700;color:#9988de">${sec.letter}</span>
-        <span style="font-size:13px;color:var(--text-dim)">${sec.sectionType ? (sec.sectionType.charAt(0).toUpperCase()+sec.sectionType.slice(1)) : 'Choose type'}</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-family:var(--font-display);font-size:32px;font-weight:800;color:#9988de;line-height:1;letter-spacing:-0.03em">${sec.letter}</span>
+        <div>
+          ${sec.sectionType ? `<div style="display:inline-flex;align-items:center;padding:2px 9px;background:rgba(99,77,179,0.22);border:1px solid rgba(99,77,179,0.38);border-radius:7px;font-size:11px;font-weight:800;letter-spacing:0.07em;text-transform:uppercase;color:#c4bde8;font-family:var(--font-body)">${sec.sectionType.charAt(0).toUpperCase()+sec.sectionType.slice(1)}</div>` : `<span style="font-size:13px;color:var(--text-dim)">Choose type</span>`}
+        </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
         ${!isFirst?`<button onclick="moveSection(${idx},-1)" style="width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--text-dim);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">↑</button>`:''}
@@ -1879,7 +1922,10 @@ function tickSectionTimer() {
   if (btnEl) {
     const isDone = !t.running && t.remaining <= 0;
     btnEl.textContent = isDone ? 'Done ✓' : (t.running ? 'Pause' : (t.remaining < t.total ? 'Resume' : 'Start'));
-    btnEl.style.background = isDone ? 'rgba(34,197,94,0.15)' : 'rgba(99,77,179,0.5)';
+    btnEl.style.background = isDone ? 'none' : 'linear-gradient(135deg,#7761d0,#634DB3)';
+    btnEl.style.backgroundColor = isDone ? 'rgba(34,197,94,0.15)' : 'transparent';
+    btnEl.style.border = isDone ? '2px solid rgba(34,197,94,0.4)' : 'none';
+    btnEl.style.boxShadow = isDone ? '0 4px 16px rgba(34,197,94,0.2)' : '0 6px 24px rgba(99,77,179,0.5)';
     btnEl.style.color = isDone ? '#4ade80' : 'white';
   }
   if (statusEl) {
