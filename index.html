@@ -348,6 +348,17 @@ input:checked + .tog-sl:before { transform: translateX(22px); }
 </head>
 <body>
 
+<!-- Day detail sheet -->
+<div id="cal-overlay" class="sheet-overlay" onclick="closeCalDay()"></div>
+<div id="cal-sheet" class="sheet" style="max-height:88vh">
+  <div class="sheet-handle"></div>
+  <div id="cal-sheet-header" style="padding:16px 20px 10px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)">
+    <span id="cal-sheet-title" style="font-family:var(--font-display);font-size:20px;font-weight:800;color:white;letter-spacing:-0.01em"></span>
+    <button onclick="closeCalDay()" style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text-dim);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+  </div>
+  <div id="cal-sheet-content" style="overflow-y:auto;flex:1;padding:18px 20px 48px"></div>
+</div>
+
 <!-- Bottom sheet -->
 <div id="sheet-overlay" class="sheet-overlay" onclick="closePicker()"></div>
 <div id="sheet" class="sheet">
@@ -644,6 +655,7 @@ function buildDefaultTemplate(type) {
 let S = {
   view: 'client',
   coachTab: 'builder',
+  calViewDate: null,
   workout: null,
   savedWorkouts: {},
   libraries: {},
@@ -1126,13 +1138,15 @@ function renderHistoryCalendar() {
 
     let cls = 'cal-future';
     let title = '';
-    if (isRest && !isFuture) { cls = 'cal-rest'; title = 'REST'; }
+    const hasWorkout = !!S.savedWorkouts[key];
+    const clickable = (done || hasWorkout || (!isRest && isPast && !isToday)) && !isFuture && !isRest;
+    if (isRest && !isFuture) { cls = 'cal-rest'; title = '—'; }
     else if (done) { cls = 'cal-done'; title = '✓'; }
     else if (!isRest && isPast && !isToday) { cls = 'cal-missed'; title = '✗'; }
     else if (isToday) { cls = 'cal-today'; title = d; }
     else { cls = 'cal-future'; }
 
-    cells += `<div class="cal-day ${cls}" title="${TYPE_ABBREV[scheduledType]||''}">${title || d}</div>`;
+    cells += `<div class="cal-day ${cls}" ${clickable ? `onclick="openCalDay('${key}')" style="cursor:pointer" title="View ${key}"` : `title="${TYPE_ABBREV[scheduledType]||''}"`}>${title || d}</div>`;
   }
 
   return `<div style="margin-top:12px">
@@ -1184,6 +1198,7 @@ function renderCoach() {
           <div style="display:flex;gap:8px;align-items:center">
             <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">Builder</button>
             <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">Library</button>
+            <button class="nav-tab ${S.coachTab==='history'?'active':''}" onclick="S.coachTab='history';render()">History</button>
             <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
             <button onclick="S.view='videos';render()" class="btn-ghost" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg> Videos</button>
             <button onclick="S.view='client';render()" class="btn-ghost" style="padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Client View</button>
@@ -1195,6 +1210,11 @@ function renderCoach() {
       <div style="max-width:1260px;margin:0 auto;padding:28px 28px 60px;position:relative;z-index:1">
         <div style="border:1px solid var(--border-strong);border-radius:20px;background:rgba(23,22,40,0.85);box-shadow:0 8px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(99,77,179,0.06);display:flex;min-height:75vh">
 
+          ${S.coachTab==='history' ? `
+          <!-- History full-width panel -->
+          <div style="flex:1;min-width:0;padding:32px 40px" id="coach-body">
+            ${renderCoachHistory(true)}
+          </div>` : `
           <!-- Left sidebar -->
           <div style="width:300px;flex-shrink:0;border-right:1px solid var(--border);padding:28px 22px;position:sticky;top:90px;align-self:flex-start;display:flex;flex-direction:column;gap:14px;border-radius:20px 0 0 0">
             ${S.coachTab==='builder' ? builderSidebarHtml() : ''}
@@ -1203,7 +1223,8 @@ function renderCoach() {
           <!-- Main content -->
           <div style="flex:1;min-width:0;padding:32px 40px" id="coach-body">
             ${S.coachTab==='builder' ? builderMainHtml() : renderLibrary()}
-          </div>
+          </div>`}
+
 
         </div>
       </div>
@@ -1223,9 +1244,10 @@ function renderCoach() {
       <div style="padding:10px 14px 12px;display:flex;gap:7px;border-bottom:1px solid rgba(255,255,255,0.05)">
         <button class="nav-tab ${S.coachTab==='builder'?'active':''}" onclick="S.coachTab='builder';render()">Builder</button>
         <button class="nav-tab ${S.coachTab==='library'?'active':''}" onclick="S.coachTab='library';render()">Library</button>
+        <button class="nav-tab ${S.coachTab==='history'?'active':''}" onclick="S.coachTab='history';render()">History</button>
       </div>
       <div style="max-width:480px;margin:0 auto;padding:18px 14px 100px" id="coach-body">
-        ${S.coachTab==='builder' ? renderBuilder() : renderLibrary()}
+        ${S.coachTab==='builder' ? renderBuilder() : S.coachTab==='library' ? renderLibrary() : renderCoachHistory(false)}
       </div>
     </div>`;
   }
@@ -2021,6 +2043,234 @@ function saveVideoUrl() {
   render();
 }
 
+// ============================================================
+// HISTORY / CALENDAR DAY DETAIL
+// ============================================================
+function openCalDay(dateKey) {
+  S.calViewDate = dateKey;
+  const dateObj = new Date(dateKey + 'T00:00:00');
+  const dateStr = dateObj.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  const titleEl = document.getElementById('cal-sheet-title');
+  if (titleEl) titleEl.textContent = dateStr;
+  const content = document.getElementById('cal-sheet-content');
+  if (content) content.innerHTML = renderCalDayDetail(dateKey);
+  document.getElementById('cal-overlay').classList.add('open');
+  document.getElementById('cal-sheet').classList.add('open');
+}
+
+function closeCalDay() {
+  document.getElementById('cal-overlay').classList.remove('open');
+  document.getElementById('cal-sheet').classList.remove('open');
+}
+
+function renderCalDayDetail(dateKey) {
+  const w = S.savedWorkouts[dateKey];
+  const weightLog = getWeightLog(dateKey);
+  const done = isWorkoutDone(dateKey);
+  const dateObj = new Date(dateKey + 'T00:00:00');
+  const dow = dateObj.getDay();
+  const scheduledType = WEEKLY_SCHEDULE[dow] || 'rest';
+
+  if (!w) {
+    const ti = WORKOUT_TYPES.find(t=>t.id===scheduledType);
+    return `<div style="text-align:center;padding:40px 0">
+      <div style="font-size:44px;margin-bottom:14px">${scheduledType==='rest'?'😴':'📋'}</div>
+      <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;margin-bottom:8px">${scheduledType==='rest'?'Rest Day':'No Workout Saved'}</div>
+      <p style="color:var(--text-dim);font-size:14px;line-height:1.65">${scheduledType==='rest'?'Recovery day — no session scheduled.':'Mostafa didn\'t save a workout for this day.'}</p>
+    </div>`;
+  }
+
+  const ti = WORKOUT_TYPES.find(t=>t.id===w.type)||{label:w.type,icon:'💪'};
+  let h = '';
+
+  // Workout type header
+  h += `<div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+    <span style="font-size:34px">${ti.icon}</span>
+    <div>
+      <div style="font-family:var(--font-display);font-size:26px;font-weight:800;color:white;letter-spacing:-0.02em;line-height:1.1">${ti.label}</div>
+      ${done?`<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.3);border-radius:7px;padding:3px 10px;font-size:12px;font-weight:700;color:#4ade80;margin-top:5px">✓ Completed</div>`:`<div style="font-size:12px;color:var(--text-dim);margin-top:3px">Not marked done</div>`}
+    </div>
+  </div>`;
+
+  // Coach note
+  if (w.coachNote) {
+    h += `<div style="background:rgba(99,77,179,0.12);border:1px solid rgba(99,77,179,0.25);border-radius:12px;padding:12px 16px;margin-bottom:16px">
+      <div class="t-label" style="margin-bottom:5px">Coach's Note</div>
+      <p style="color:#c4bde8;font-size:14px;line-height:1.65;font-style:italic">"${esc(w.coachNote)}"</p>
+    </div>`;
+  }
+
+  // Warmup
+  if (w.warmupItems?.length) {
+    h += `<div style="margin-bottom:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:12px 16px;background:linear-gradient(135deg,rgba(99,77,179,0.22),rgba(82,65,160,0.12));border-bottom:1px solid rgba(99,77,179,0.18);display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">🔥</span>
+        <span style="font-family:var(--font-display);font-size:16px;font-weight:800;color:white">Warm Up</span>
+      </div>
+      <div style="padding:8px 16px">
+        ${w.warmupItems.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+          <span style="font-size:14px;color:var(--text);font-weight:500">${esc(x.name)}</span>
+          <span style="font-size:13px;color:#9988de;font-weight:700;background:rgba(99,77,179,0.15);border-radius:6px;padding:2px 8px">${esc(x.setsReps)}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Sections
+  (w.sections||[]).forEach((sec) => {
+    const lbl = sec.sectionType==='single' ? sec.letter : (sec.exercises||[]).map((_,i)=>sec.letter+(i+1)).join('·');
+    h += `<div style="margin-bottom:12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:12px 16px;background:linear-gradient(135deg,rgba(99,77,179,0.22),rgba(82,65,160,0.12));border-bottom:1px solid rgba(99,77,179,0.18);display:flex;align-items:center;gap:12px">
+        <span style="font-family:var(--font-display);font-size:28px;font-weight:800;color:#9988de;line-height:1;letter-spacing:-0.03em">${lbl}</span>
+        <div>
+          <div style="display:inline-flex;align-items:center;padding:2px 8px;background:rgba(99,77,179,0.25);border:1px solid rgba(99,77,179,0.4);border-radius:6px;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:#c4bde8;font-family:var(--font-body)">${sec.sectionType||'exercise'}</div>
+          ${sec.rest&&sec.rest!=='—'?`<div style="font-size:11px;color:#9988de;margin-top:3px;font-weight:600">Rest ${esc(sec.rest)}</div>`:''}
+        </div>
+      </div>
+      <div style="padding:8px 16px">
+        ${(sec.exercises||[]).map((ex,ei) => {
+          const savedWeight = weightLog[ex.name];
+          const prData = getPRs()[ex.name];
+          const isPrDay = savedWeight && prData && parseFloat(savedWeight) >= prData.weight && prData.date === dateKey;
+          return `<div style="padding:10px 0;${ei>0?'border-top:1px solid rgba(255,255,255,0.05)':''}">
+            <div style="font-family:var(--font-display);font-size:20px;font-weight:700;color:white;margin-bottom:6px;line-height:1.2">${esc(ex.name)||'—'}</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              ${ex.setsReps?`<div style="background:rgba(99,77,179,0.25);border:1.5px solid rgba(99,77,179,0.45);border-radius:8px;padding:4px 12px;font-family:var(--font-display);font-size:16px;font-weight:800;color:#d4caff">${esc(ex.setsReps)}</div>`:''}
+              ${savedWeight?`<div style="background:rgba(255,255,255,0.07);border:1px solid var(--border-strong);border-radius:8px;padding:4px 12px;font-size:14px;font-weight:700;color:#e8e6f0">${savedWeight} <span style="font-size:11px;color:var(--text-dim)">kg</span></div>`:'<div style="font-size:12px;color:var(--text-faint);font-style:italic">no weight logged</div>'}
+              ${isPrDay?`<div style="background:linear-gradient(135deg,rgba(251,191,36,0.25),rgba(245,158,11,0.15));border:1px solid rgba(251,191,36,0.5);border-radius:7px;padding:3px 9px;font-size:11px;font-weight:800;color:#fbbf24;letter-spacing:0.05em;text-transform:uppercase">🏆 PR</div>`:''}
+            </div>
+            ${ex.coachNote?`<div style="margin-top:6px;font-size:12px;color:#9988de;font-style:italic">${esc(ex.coachNote)}</div>`:''}
+          </div>`;
+        }).join('')}
+        ${sec.coachNote?`<div style="margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);font-size:13px;color:#9988de;font-style:italic">${esc(sec.coachNote)}</div>`:''}
+      </div>
+    </div>`;
+  });
+
+  // Finisher
+  if (w.finisherEnabled && w.finisherExercises) {
+    h += `<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <div style="padding:12px 16px;background:linear-gradient(135deg,rgba(99,77,179,0.22),rgba(82,65,160,0.12));border-bottom:1px solid rgba(99,77,179,0.18);display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">⚡</span>
+        <span style="font-family:var(--font-display);font-size:16px;font-weight:800;color:white">Finisher ${w.finisherRounds?`· ${esc(w.finisherRounds)}`:''}</span>
+      </div>
+      <div style="padding:14px 16px;font-size:14px;color:#c4bde8;line-height:1.7">${esc(w.finisherExercises)}</div>
+    </div>`;
+  }
+
+  return h;
+}
+
+function renderCoachHistory(desktop) {
+  const today = new Date();
+  const todayStr = todayKey();
+
+  // Build last 3 months of calendar
+  let calHtml = '';
+  for (let mOff = 0; mOff >= -2; mOff--) {
+    const d = new Date(today.getFullYear(), today.getMonth() + mOff, 1);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startDow = firstDay.getDay();
+    const monthName = d.toLocaleDateString('en-GB', {month:'long', year:'numeric'});
+    const dayLabels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+    let cells = '';
+    for (let i = 0; i < startDow; i++) cells += `<div></div>`;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateObj = new Date(year, month, day);
+      const key = dateObj.toISOString().slice(0,10);
+      const dow = dateObj.getDay();
+      const scheduledType = WEEKLY_SCHEDULE[dow] || 'rest';
+      const isToday = key === todayStr;
+      const isFuture = dateObj > today && !isToday;
+      const isRest = scheduledType === 'rest';
+      const done = isWorkoutDone(key);
+      const hasWorkout = !!S.savedWorkouts[key];
+      const isPast = dateObj < today || isToday;
+      const clickable = !isFuture && !isRest && (done || hasWorkout || isPast);
+
+      let cls = 'cal-future';
+      let title = '';
+      if (isFuture) { cls = 'cal-future'; title = day; }
+      else if (isRest) { cls = 'cal-rest'; title = '—'; }
+      else if (done) { cls = 'cal-done'; title = '✓'; }
+      else if (isPast && !isToday) { cls = 'cal-missed'; title = '✗'; }
+      else if (isToday) { cls = 'cal-today'; title = day; }
+
+      const isSelected = S.calViewDate === key;
+      cells += `<div class="cal-day ${cls}" ${clickable?`onclick="selectHistoryDay('${key}')" style="cursor:pointer${isSelected?';box-shadow:0 0 0 2px #7761d0':''}"`:''} title="${key}">${title||day}</div>`;
+    }
+
+    calHtml += `<div style="margin-bottom:${desktop?'28px':'20px'}">
+      <div style="font-size:13px;font-weight:800;color:white;margin-bottom:10px;font-family:var(--font-display)">${monthName}</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">
+        ${dayLabels.map(l=>`<div class="cal-header-day">${l}</div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${cells}</div>
+    </div>`;
+  }
+
+  const legend = `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(99,77,179,0.38)"></div><span style="font-size:12px;color:var(--text-dim)">Done</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(239,68,68,0.22)"></div><span style="font-size:12px;color:var(--text-dim)">Missed</span></div>
+    <div style="display:flex;align-items:center;gap:6px"><div style="width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,0.04)"></div><span style="font-size:12px;color:var(--text-dim)">Rest</span></div>
+    <div style="display:flex;align-items:center;gap:6px;margin-left:auto;font-size:12px;color:#9988de;font-weight:600">Tap any workout day to view details</div>
+  </div>`;
+
+  if (desktop) {
+    // Two-column layout on desktop
+    const detailHtml = S.calViewDate
+      ? renderCalDayDetail(S.calViewDate)
+      : `<div style="text-align:center;padding:60px 20px;color:var(--text-faint)">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 16px;display:block;opacity:0.4"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style="font-size:15px;font-weight:600;margin-bottom:6px">Select a day</div>
+          <div style="font-size:13px">Click any completed workout day to see the full session — exercises, sets, reps, and weights used.</div>
+        </div>`;
+
+    const selectedDateStr = S.calViewDate ? new Date(S.calViewDate+'T00:00:00').toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}) : '';
+
+    return `<div style="display:grid;grid-template-columns:320px 1fr;gap:32px;align-items:start">
+      <div>
+        <h2 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;letter-spacing:-0.02em;margin-bottom:4px">Workout History</h2>
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:18px">Last 3 months</p>
+        ${legend}
+        ${calHtml}
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:18px;overflow:hidden;position:sticky;top:100px">
+        ${S.calViewDate ? `
+        <div style="padding:16px 20px;background:linear-gradient(135deg,rgba(99,77,179,0.22),rgba(82,65,160,0.12));border-bottom:1px solid rgba(99,77,179,0.18)">
+          <div style="font-family:var(--font-display);font-size:18px;font-weight:800;color:white">${selectedDateStr}</div>
+        </div>
+        <div style="padding:18px 20px;max-height:70vh;overflow-y:auto">${detailHtml}</div>` : detailHtml}
+      </div>
+    </div>`;
+  }
+
+  // Mobile: calendar + tap opens sheet
+  return `<div>
+    <h2 style="font-family:var(--font-display);font-size:22px;font-weight:800;color:white;letter-spacing:-0.02em;margin-bottom:4px">Workout History</h2>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">Tap a completed day to view details</p>
+    ${legend}
+    ${calHtml}
+  </div>`;
+}
+
+function selectHistoryDay(dateKey) {
+  S.calViewDate = dateKey;
+  // On desktop, re-render history panel in place
+  const coachBody = document.getElementById('coach-body');
+  if (coachBody && window.innerWidth >= 1024) {
+    coachBody.innerHTML = renderCoachHistory(true);
+    return;
+  }
+  // On mobile, open sheet
+  openCalDay(dateKey);
+}
+
+// ============================================================
 // CLIENT HELPERS
 // ============================================================
 function getCompletionState(date,idx){ try{return !!(JSON.parse(localStorage.getItem(`kodus_complete_${date}`)||'{}')[idx]);}catch(e){return false;}}
